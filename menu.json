@@ -1,22 +1,277 @@
 {
   "updatedAt": "2026-11-13T00:00:00.000Z",
   "categories": [
-    { "id": "coffee", "name": "Кофе", "emoji": "☕" },
-    { "id": "dessert", "name": "Десерты", "emoji": "🍰" },
-    { "id": "tea", "name": "Чай", "emoji": "🍵" }
+    {
+      "id": "coffee",
+      "name": "Горячий Кофе",
+      "emoji": "☕"
+    },
+    {
+      "id": "dessert",
+      "name": "Свежая выпичка",
+      "emoji": "🍰"
+    },
+    {
+      "id": "tea",
+      "name": "Авторские чаи",
+      "emoji": "🍵"
+    },
+    {
+      "id": "c1794584537266",
+      "name": "АВТОРСКИЕ НАПИТКИ",
+      "emoji": "🧉"
+    },
+    {
+      "id": "c1794586608031",
+      "name": "Холодные напитки",
+      "emoji": "❄️"
+    },
+    {
+      "id": "c1794587892077",
+      "name": "Допы",
+      "emoji": "📁"
+    }
   ],
   "products": [
-    { "id": "p1",  "name": "Эспрессо",    "category": "coffee",  "price": 150, "desc": "Крепкий кофе 30 мл",         "emoji": "☕" },
-    { "id": "p2",  "name": "Американо",   "category": "coffee",  "price": 180, "desc": "Эспрессо с водой 180 мл",    "emoji": "☕" },
-    { "id": "p3",  "name": "Капучино",    "category": "coffee",  "price": 220, "desc": "Кофе с молочной пеной",      "emoji": "☕" },
-    { "id": "p4",  "name": "Латте",       "category": "coffee",  "price": 240, "desc": "Кофе с молоком 250 мл",      "emoji": "☕" },
-    { "id": "p5",  "name": "Раф",         "category": "coffee",  "price": 260, "desc": "Кофе со сливками 180 мл",    "emoji": "☕" },
-    { "id": "p6",  "name": "Флэт уайт",   "category": "coffee",  "price": 250, "desc": "Двойной эспрессо с молоком", "emoji": "☕" },
-    { "id": "p7",  "name": "Чизкейк",     "category": "dessert", "price": 320, "desc": "С ягодным соусом",           "emoji": "🍰" },
-    { "id": "p8",  "name": "Тирамису",    "category": "dessert", "price": 290, "desc": "Классический десерт",        "emoji": "🍰" },
-    { "id": "p9",  "name": "Брауни",      "category": "dessert", "price": 240, "desc": "Шоколадный, с орехами",      "emoji": "🍪" },
-    { "id": "p10", "name": "Круассан",    "category": "dessert", "price": 190, "desc": "С миндалём",                 "emoji": "🥐" },
-    { "id": "p11", "name": "Чёрный чай",  "category": "tea",     "price": 120, "desc": "350 мл",                     "emoji": "🍵" },
-    { "id": "p12", "name": "Зелёный чай", "category": "tea",     "price": 130, "desc": "350 мл",                     "emoji": "🍵" }
+    {
+      "id": "p1",
+      "name": "Эспрессо",
+      "category": "coffee",
+      "price": 3,
+      "desc": "Крепкий кофе 30 мл",
+      "emoji": "☕"
+    },
+    {
+      "id": "p2",
+      "name": "Американо",
+      "category": "coffee",
+      "price": 3,
+      "desc": "Эспрессо с водой 180 мл",
+      "emoji": "☕"
+    },
+    {
+      "id": "p3",
+      "name": "Капучино",
+      "category": "coffee",
+      "price": 4,
+      "desc": "Кофе с молочной пеной",
+      "emoji": "☕"
+    },
+    {
+      "id": "p4",
+      "name": "Латте",
+      "category": "coffee",
+      "price": 4,
+      "desc": "Кофе с молоком 250 мл",
+      "emoji": "☕"
+    },
+    {
+      "id": "p6",
+      "name": "Флэт уайт",
+      "category": "coffee",
+      "price": 6,
+      "desc": "Двойной эспрессо с молоком",
+      "emoji": "☕"
+    },
+    {
+      "id": "p11",
+      "name": "Чёрный чай",
+      "category": "tea",
+      "price": 3,
+      "desc": "350 мл",
+      "emoji": "🍵"
+    },
+    {
+      "id": "p12",
+      "name": "Зелёный чай",
+      "category": "tea",
+      "price": 3,
+      "desc": "350 мл",
+      "emoji": "🍵"
+    },
+    {
+      "id": "p1794585781560",
+      "name": "Большой Американо",
+      "category": "coffee",
+      "price": 4,
+      "desc": "",
+      "emoji": "☕"
+    },
+    {
+      "id": "p1794585805891",
+      "name": "Большой Капучино",
+      "category": "coffee",
+      "price": 5,
+      "desc": "",
+      "emoji": "☕"
+    },
+    {
+      "id": "p1794585833328",
+      "name": "Большой Латте",
+      "category": "coffee",
+      "price": 6,
+      "desc": "",
+      "emoji": "☕"
+    },
+    {
+      "id": "p1794587675490",
+      "name": "Дабл эспрессо",
+      "category": "coffee",
+      "price": 5,
+      "desc": "",
+      "emoji": "☕"
+    },
+    {
+      "id": "p1794587795869",
+      "name": "Большой флэт уайт",
+      "category": "coffee",
+      "price": 8,
+      "desc": "",
+      "emoji": "☕"
+    },
+    {
+      "id": "p1794587804623",
+      "name": "Раф",
+      "category": "coffee",
+      "price": 5,
+      "desc": "",
+      "emoji": "☕"
+    },
+    {
+      "id": "p1794587815537",
+      "name": "Большой раф",
+      "category": "coffee",
+      "price": 7,
+      "desc": "",
+      "emoji": "☕"
+    },
+    {
+      "id": "p1794587934494",
+      "name": "Сироп",
+      "category": "c1794587892077",
+      "price": 1,
+      "desc": "",
+      "emoji": "🍼"
+    },
+    {
+      "id": "p1794587996018",
+      "name": "Альт молоко",
+      "category": "c1794587892077",
+      "price": 2,
+      "desc": "",
+      "emoji": "🥛"
+    },
+    {
+      "id": "p1794589672404",
+      "name": "Кола 0,5",
+      "category": "c1794586608031",
+      "price": 3,
+      "desc": "",
+      "emoji": "🍾"
+    },
+    {
+      "id": "p1794589748635",
+      "name": "Бонаква",
+      "category": "c1794586608031",
+      "price": 2,
+      "desc": "",
+      "emoji": "🍾"
+    },
+    {
+      "id": "p1794589787240",
+      "name": "Жесть банка",
+      "category": "c1794586608031",
+      "price": 2,
+      "desc": "",
+      "emoji": "🥫"
+    },
+    {
+      "id": "p1794589845691",
+      "name": "Кола 1,0",
+      "category": "c1794586608031",
+      "price": 4,
+      "desc": "",
+      "emoji": "🍾"
+    },
+    {
+      "id": "p1794589860059",
+      "name": "Burn",
+      "category": "c1794586608031",
+      "price": 7,
+      "desc": "",
+      "emoji": "🥫"
+    },
+    {
+      "id": "p1794595601289",
+      "name": "Марсель",
+      "category": "dessert",
+      "price": 3,
+      "desc": "",
+      "emoji": "🍰"
+    },
+    {
+      "id": "p1794595619787",
+      "name": "Рафаэло кокос",
+      "category": "dessert",
+      "price": 3,
+      "desc": "",
+      "emoji": "🍰"
+    },
+    {
+      "id": "p1794595632538",
+      "name": "Колечко",
+      "category": "dessert",
+      "price": 4,
+      "desc": "",
+      "emoji": "🍰"
+    },
+    {
+      "id": "p1794595645064",
+      "name": "Картошка",
+      "category": "dessert",
+      "price": 3,
+      "desc": "",
+      "emoji": "🍰"
+    },
+    {
+      "id": "p1794595657808",
+      "name": "Сочник",
+      "category": "dessert",
+      "price": 2,
+      "desc": "",
+      "emoji": "🍰"
+    },
+    {
+      "id": "p1794595670159",
+      "name": "Трубочка",
+      "category": "dessert",
+      "price": 2,
+      "desc": "",
+      "emoji": "🍰"
+    },
+    {
+      "id": "p1794595688163",
+      "name": "Красотка",
+      "category": "dessert",
+      "price": 3,
+      "desc": "",
+      "emoji": "🍰"
+    },
+    {
+      "id": "p1794595703607",
+      "name": "Бисквит банановый",
+      "category": "dessert",
+      "price": 4,
+      "desc": "",
+      "emoji": "🍰"
+    },
+    {
+      "id": "p1794595737281",
+      "name": "Молочный чизбургер",
+      "category": "dessert",
+      "price": 4,
+      "desc": "",
+      "emoji": "🍰"
+    }
   ]
 }
