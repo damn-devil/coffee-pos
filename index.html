@@ -1590,15 +1590,24 @@ function saveShiftPdf() {
   }
 
   var url = URL.createObjectURL(blob);
+  var fileName = shiftReportName() + '.pdf';
   var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
   if (isIOS) {
-    window.open(url, '_blank');
+    var file = null;
+    try { file = new File([blob], fileName, { type: 'application/pdf' }); } catch (e) { file = null; }
+    if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file], title: fileName }).catch(function () {
+        window.open(url, '_blank');
+      });
+    } else {
+      window.open(url, '_blank');
+    }
   } else {
     var link = document.createElement('a');
     link.href = url;
-    link.download = shiftReportName() + '.pdf';
+    link.download = fileName;
     link.rel = 'noopener';
     document.body.appendChild(link);
     link.click();
