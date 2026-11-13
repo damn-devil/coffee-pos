@@ -302,7 +302,23 @@ button{font-family:inherit;user-select:none;-webkit-user-select:none}
 .edit-row-main{flex:1;min-width:0}
 .edit-row-title{font-size:14px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .edit-row-sub{font-size:11px;color:var(--muted);margin-top:2px}
-.edit-row-actions{display:flex;gap:6px;flex:0 0 auto}
+.edit-row-actions{display:flex;gap:6px;flex:0 0 auto;align-items:center}
+.edit-toolbar{display:flex;gap:8px;margin-bottom:10px}
+.edit-toolbar input,.edit-toolbar select{
+  padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--bg);
+  font-size:14px;font-family:inherit;color:var(--text);outline:none;min-width:0;
+}
+.edit-toolbar input{flex:1}
+.edit-toolbar select{flex:0 0 auto;max-width:42%}
+.edit-toolbar input:focus,.edit-toolbar select:focus{border-color:var(--accent)}
+.move-btns{display:flex;flex-direction:column;gap:3px;margin-right:2px}
+.move-btn{
+  width:28px;height:22px;display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--border);border-radius:7px;background:var(--bg);
+  cursor:pointer;color:var(--muted);font-size:11px;line-height:1;padding:0;
+}
+.move-btn:active{background:var(--border);color:var(--text)}
+.move-btn:disabled{opacity:.25;cursor:default}
 .btn-icon-sm{
   width:34px;height:34px;display:flex;align-items:center;justify-content:center;
   border:1px solid var(--border);border-radius:9px;background:var(--bg);
@@ -334,7 +350,7 @@ button{font-family:inherit;user-select:none;-webkit-user-select:none}
 <header class="app-header">
   <div class="logo-group">
     <h1 class="app-title">☕ Coffee POS</h1>
-    <span class="app-version" id="app-version">v1.5.0</span>
+    <span class="app-version" id="app-version">v1.6.0</span>
   </div>
   <div class="header-actions">
     <button class="icon-btn" id="editor-btn" title="Редактировать меню" aria-label="Редактировать меню">
@@ -540,6 +556,10 @@ button{font-family:inherit;user-select:none;-webkit-user-select:none}
         <button class="btn-primary" id="prod-save">Добавить позицию</button>
         <button class="btn-outline" id="prod-cancel" style="display:none">Отменить редактирование</button>
       </div>
+      <div class="edit-toolbar">
+        <input type="text" id="editor-prod-search" placeholder="Поиск позиции..." autocomplete="off" />
+        <select id="editor-prod-filter-cat"></select>
+      </div>
       <div class="edit-list" id="editor-products-list"></div>
     </div>
 
@@ -594,7 +614,7 @@ var STORAGE_KEY = 'coffee_pos_data';
 var MENU_CACHE_KEY = 'coffee_pos_menu';
 var MENU_DIRTY_KEY = 'coffee_pos_menu_dirty';
 var GH_KEY = 'coffee_pos_github';
-var APP_VERSION = '1.5.0';
+var APP_VERSION = '1.6.0';
 var MENU_FILE = 'menu.json';
 
 var state = {
@@ -607,7 +627,9 @@ var state = {
   editingProductId: null,
   editingCategoryId: null,
   editorTab: 'products',
-  productImageDraft: ''
+  productImageDraft: '',
+  editorProductCat: 'all',
+  editorProductSearch: ''
 };
 
 var DEFAULT_MENU = {
@@ -950,6 +972,21 @@ function setupListeners() {
 
   $('sync-pull').addEventListener('click', function () { syncPull(true); });
   $('sync-push').addEventListener('click', function () { syncPush(); });
+
+  var epSearch = $('editor-prod-search');
+  if (epSearch) {
+    epSearch.addEventListener('input', function () {
+      state.editorProductSearch = epSearch.value || '';
+      renderEditorProducts();
+    });
+  }
+  var epFilter = $('editor-prod-filter-cat');
+  if (epFilter) {
+    epFilter.addEventListener('change', function () {
+      state.editorProductCat = epFilter.value || 'all';
+      renderEditorProducts();
+    });
+  }
 
   $('shift-toggle').addEventListener('click', toggleShift);
   $('shift-pdf').addEventListener('click', saveShiftPdf);
@@ -1894,6 +1931,82 @@ function renderEditor() {
   renderEditorProducts();
   renderEditorCategories();
   fillCategorySelect();
+  fillEditorProductFilter();
+}
+
+function fillEditorProductFilter() {
+  var select = $('editor-prod-filter-cat');
+  if (!select) return;
+  var current = state.editorProductCat || 'all';
+  var html = '<option value="all">Все категории</option>';
+  for (var i = 0; i < state.categories.length; i++) {
+    var c = state.categories[i];
+    html += '<option value="' + escapeHtml(c.id) + '">' + escapeHtml(c.name) + '</option>';
+  }
+  select.innerHTML = html;
+  if (current !== 'all') {
+    var exists = false;
+    for (var j = 0; j < state.categories.length; j++) {
+      if (state.categories[j].id === current) exists = true;
+    }
+    if (!exists) current = 'all';
+  }
+  select.value = current;
+  state.editorProductCat = current;
+  var search = $('editor-prod-search');
+  if (search) search.value = state.editorProductSearch || '';
+}
+
+function moveInArray(arr, index, dir) {
+  var to = index + dir;
+  if (index < 0 || to < 0 || to >= arr.length) return false;
+  var tmp = arr[index];
+  arr[index] = arr[to];
+  arr[to] = tmp;
+  return true;
+}
+
+function moveProduct(id, dir) {
+  var index = -1;
+  for (var i = 0; i < state.products.length; i++) {
+    if (state.products[i].id === id) { index = i; break; }
+  }
+  if (index < 0) return;
+
+  // if filtered view, move within visible sequence in the global array
+  var search = (state.editorProductSearch || '').toLowerCase().trim();
+  var cat = state.editorProductCat || 'all';
+  if (search || cat !== 'all') {
+    var visibleIdx = [];
+    for (var v = 0; v < state.products.length; v++) {
+      var p = state.products[v];
+      var matchCat = cat === 'all' || p.category === cat;
+      var hay = ((p.name || '') + ' ' + (p.desc || '')).toLowerCase();
+      var matchSearch = !search || hay.indexOf(search) >= 0;
+      if (matchCat && matchSearch) visibleIdx.push(v);
+    }
+    var pos = visibleIdx.indexOf(index);
+    var targetPos = pos + dir;
+    if (pos < 0 || targetPos < 0 || targetPos >= visibleIdx.length) return;
+    var targetIndex = visibleIdx[targetPos];
+    var item = state.products.splice(index, 1)[0];
+    // adjust target if removal shifted it
+    if (index < targetIndex) targetIndex--;
+    state.products.splice(targetIndex + (dir > 0 ? 1 : 0), 0, item);
+  } else {
+    if (!moveInArray(state.products, index, dir)) return;
+  }
+
+  afterMenuChange();
+}
+
+function moveCategory(id, dir) {
+  var index = -1;
+  for (var i = 0; i < state.categories.length; i++) {
+    if (state.categories[i].id === id) { index = i; break; }
+  }
+  if (!moveInArray(state.categories, index, dir)) return;
+  afterMenuChange();
 }
 
 function fillCategorySelect() {
@@ -1911,27 +2024,51 @@ function fillCategorySelect() {
 function renderEditorProducts() {
   var list = $('editor-products-list');
   if (!list) return;
+
+  var search = (state.editorProductSearch || '').toLowerCase().trim();
+  var cat = state.editorProductCat || 'all';
+
+  var visible = [];
+  for (var i = 0; i < state.products.length; i++) {
+    var p = state.products[i];
+    var matchCat = cat === 'all' || p.category === cat;
+    var hay = ((p.name || '') + ' ' + (p.desc || '')).toLowerCase();
+    var matchSearch = !search || hay.indexOf(search) >= 0;
+    if (matchCat && matchSearch) visible.push(p);
+  }
+
   if (!state.products.length) {
     list.innerHTML = '<div class="edit-empty">Позиций пока нет</div>';
     return;
   }
+  if (!visible.length) {
+    list.innerHTML = '<div class="edit-empty">Ничего не найдено</div>';
+    return;
+  }
+
   var html = '';
-  for (var i = 0; i < state.products.length; i++) {
-    var p = state.products[i];
-    var thumb = p.image
-      ? '<div class="edit-row-thumb"><img src="' + escapeHtml(p.image) + '" alt=""></div>'
-      : '<div class="edit-row-thumb">' + (p.emoji || '☕') + '</div>';
+  for (var j = 0; j < visible.length; j++) {
+    var item = visible[j];
+    var thumb = item.image
+      ? '<div class="edit-row-thumb"><img src="' + escapeHtml(item.image) + '" alt=""></div>'
+      : '<div class="edit-row-thumb">' + (item.emoji || '☕') + '</div>';
+    var upDis = j === 0 ? ' disabled' : '';
+    var downDis = j === visible.length - 1 ? ' disabled' : '';
     html += '<div class="edit-row">' +
+      '<div class="move-btns">' +
+        '<button type="button" class="move-btn" data-move="up" data-id="' + escapeHtml(item.id) + '"' + upDis + '>▲</button>' +
+        '<button type="button" class="move-btn" data-move="down" data-id="' + escapeHtml(item.id) + '"' + downDis + '>▼</button>' +
+      '</div>' +
       thumb +
       '<div class="edit-row-main">' +
-        '<div class="edit-row-title">' + escapeHtml(p.name) + '</div>' +
-        '<div class="edit-row-sub">' + escapeHtml(categoryName(p.category)) + ' · ' + formatMoney(p.price) + '</div>' +
+        '<div class="edit-row-title">' + escapeHtml(item.name) + '</div>' +
+        '<div class="edit-row-sub">' + escapeHtml(categoryName(item.category)) + ' · ' + formatMoney(item.price) + '</div>' +
       '</div>' +
       '<div class="edit-row-actions">' +
-        '<button type="button" class="btn-icon-sm" data-edit="' + escapeHtml(p.id) + '">' +
+        '<button type="button" class="btn-icon-sm" data-edit="' + escapeHtml(item.id) + '">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg>' +
         '</button>' +
-        '<button type="button" class="btn-icon-sm danger" data-del="' + escapeHtml(p.id) + '">' +
+        '<button type="button" class="btn-icon-sm danger" data-del="' + escapeHtml(item.id) + '">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M6 6l1 14h10l1-14"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>' +
         '</button>' +
       '</div>' +
@@ -1939,6 +2076,13 @@ function renderEditorProducts() {
   }
   list.innerHTML = html;
 
+  var moveBtns = list.querySelectorAll('[data-move]');
+  for (var m = 0; m < moveBtns.length; m++) {
+    moveBtns[m].addEventListener('click', function () {
+      var dir = this.getAttribute('data-move') === 'up' ? -1 : 1;
+      moveProduct(this.getAttribute('data-id'), dir);
+    });
+  }
   var editBtns = list.querySelectorAll('[data-edit]');
   for (var e = 0; e < editBtns.length; e++) {
     editBtns[e].addEventListener('click', function () { editProduct(this.getAttribute('data-edit')); });
@@ -1963,7 +2107,13 @@ function renderEditorCategories() {
     for (var j = 0; j < state.products.length; j++) {
       if (state.products[j].category === c.id) count++;
     }
+    var upDis = i === 0 ? ' disabled' : '';
+    var downDis = i === state.categories.length - 1 ? ' disabled' : '';
     html += '<div class="edit-row">' +
+      '<div class="move-btns">' +
+        '<button type="button" class="move-btn" data-cmove="up" data-id="' + escapeHtml(c.id) + '"' + upDis + '>▲</button>' +
+        '<button type="button" class="move-btn" data-cmove="down" data-id="' + escapeHtml(c.id) + '"' + downDis + '>▼</button>' +
+      '</div>' +
       '<div class="edit-row-main">' +
         '<div class="edit-row-title">' + (c.emoji || '') + ' ' + escapeHtml(c.name) + '</div>' +
         '<div class="edit-row-sub">' + count + ' поз.</div>' +
@@ -1980,6 +2130,13 @@ function renderEditorCategories() {
   }
   list.innerHTML = html;
 
+  var moveBtns = list.querySelectorAll('[data-cmove]');
+  for (var m = 0; m < moveBtns.length; m++) {
+    moveBtns[m].addEventListener('click', function () {
+      var dir = this.getAttribute('data-cmove') === 'up' ? -1 : 1;
+      moveCategory(this.getAttribute('data-id'), dir);
+    });
+  }
   var editBtns = list.querySelectorAll('[data-cedit]');
   for (var e = 0; e < editBtns.length; e++) {
     editBtns[e].addEventListener('click', function () { editCategory(this.getAttribute('data-cedit')); });
