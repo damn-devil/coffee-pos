@@ -1,0 +1,22 @@
+{
+  "updatedAt": "2026-11-13T00:00:00.000Z",
+  "categories": [
+    { "id": "coffee", "name": "Кофе", "emoji": "☕" },
+    { "id": "dessert", "name": "Десерты", "emoji": "🍰" },
+    { "id": "tea", "name": "Чай", "emoji": "🍵" }
+  ],
+  "products": [
+    { "id": "p1",  "name": "Эспрессо",    "category": "coffee",  "price": 150, "desc": "Крепкий кофе 30 мл",         "emoji": "☕" },
+    { "id": "p2",  "name": "Американо",   "category": "coffee",  "price": 180, "desc": "Эспрессо с водой 180 мл",    "emoji": "☕" },
+    { "id": "p3",  "name": "Капучино",    "category": "coffee",  "price": 220, "desc": "Кофе с молочной пеной",      "emoji": "☕" },
+    { "id": "p4",  "name": "Латте",       "category": "coffee",  "price": 240, "desc": "Кофе с молоком 250 мл",      "emoji": "☕" },
+    { "id": "p5",  "name": "Раф",         "category": "coffee",  "price": 260, "desc": "Кофе со сливками 180 мл",    "emoji": "☕" },
+    { "id": "p6",  "name": "Флэт уайт",   "category": "coffee",  "price": 250, "desc": "Двойной эспрессо с молоком", "emoji": "☕" },
+    { "id": "p7",  "name": "Чизкейк",     "category": "dessert", "price": 320, "desc": "С ягодным соусом",           "emoji": "🍰" },
+    { "id": "p8",  "name": "Тирамису",    "category": "dessert", "price": 290, "desc": "Классический десерт",        "emoji": "🍰" },
+    { "id": "p9",  "name": "Брауни",      "category": "dessert", "price": 240, "desc": "Шоколадный, с орехами",      "emoji": "🍪" },
+    { "id": "p10", "name": "Круассан",    "category": "dessert", "price": 190, "desc": "С миндалём",                 "emoji": "🥐" },
+    { "id": "p11", "name": "Чёрный чай",  "category": "tea",     "price": 120, "desc": "350 мл",                     "emoji": "🍵" },
+    { "id": "p12", "name": "Зелёный чай", "category": "tea",     "price": 130, "desc": "350 мл",                     "emoji": "🍵" }
+  ]
+}

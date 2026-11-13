@@ -1,8 +1,9 @@
 /* Coffee POS — service worker (офлайн-режим) */
-var CACHE = 'coffee-pos-v3';
+var CACHE = 'coffee-pos-v4';
 var ASSETS = [
   './',
   './index.html',
+  './menu.json',
   './manifest.json',
   './icon.svg',
   './icon-180.png',
@@ -39,7 +40,10 @@ self.addEventListener('fetch', function (event) {
   var url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  if (request.mode === 'navigate') {
+  var isMenu = url.pathname.indexOf('menu.json') >= 0;
+  var isPage = request.mode === 'navigate';
+
+  if (isPage || isMenu) {
     event.respondWith(
       fetch(request).then(function (response) {
         var copy = response.clone();
@@ -47,7 +51,7 @@ self.addEventListener('fetch', function (event) {
         return response;
       }).catch(function () {
         return caches.match(request).then(function (cached) {
-          return cached || caches.match('./index.html');
+          return cached || (isPage ? caches.match('./index.html') : undefined);
         });
       })
     );

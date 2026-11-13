@@ -16,7 +16,7 @@
 /* Самовосстановление: убираем service worker и кэш от предыдущих сборок */
 (function () {
   var CURRENT_SW = /\/sw\.js$/;
-  var CURRENT_CACHE = 'coffee-pos-v3';
+  var CURRENT_CACHE = 'coffee-pos-v4';
   try {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(function (regs) {
@@ -63,18 +63,19 @@ button{font-family:inherit}
 .app-header{
   height:60px;flex:0 0 60px;background:var(--surface);
   display:flex;align-items:center;justify-content:space-between;
-  padding:0 16px;border-bottom:1px solid var(--border);z-index:100;
+  padding:0 16px;border-bottom:1px solid var(--border);z-index:100;gap:8px;
 }
-  .logo-group{display:flex;align-items:center;gap:10px;min-width:0}
-  .app-version{
-    font-size:10px;font-weight:800;color:var(--muted);border:1px solid var(--border);
-    border-radius:8px;padding:2px 6px;letter-spacing:.5px;flex:0 0 auto;
-  }
+.logo-group{display:flex;align-items:center;gap:10px;min-width:0}
+.app-version{
+  font-size:10px;font-weight:800;color:var(--muted);border:1px solid var(--border);
+  border-radius:8px;padding:2px 6px;letter-spacing:.5px;flex:0 0 auto;
+}
 .app-title{
   font-size:17px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   background:linear-gradient(to right,var(--accent2),var(--accent));
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
 }
+.header-actions{display:flex;align-items:center;gap:8px;flex:0 0 auto}
 .icon-btn{
   width:42px;height:42px;display:flex;align-items:center;justify-content:center;
   background:var(--surface-lift);border:1px solid var(--border);border-radius:12px;
@@ -197,7 +198,6 @@ button{font-family:inherit}
   font-size:15px;font-family:inherit;color:var(--text);outline:none;width:100%;
 }
 .form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:var(--accent)}
-.form-row textarea{resize:vertical;min-height:60px}
 .btn-primary{
   background:var(--accent2);color:#000;border:none;padding:13px 20px;
   border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;
@@ -271,11 +271,49 @@ button{font-family:inherit}
   box-shadow:0 12px 30px rgba(0,0,0,.6);
 }
 .toast.show{transform:translateX(-50%) translateY(0)}
-@media(max-width:360px){
-  .products-grid{grid-template-columns:1fr}
-  .search-wrap input{width:120px}
-  .stat-value{font-size:17px}
+
+/* ---------- редактор меню ---------- */
+.edit-tabs{display:flex;background:var(--bg);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px}
+.edit-tabs .tab-btn{padding:11px 6px;font-size:13px}
+.edit-tabs .tab-btn.active{background:var(--surface-lift)}
+.edit-tabs .tab-btn.active::after{display:none}
+.edit-form{background:var(--surface-lift);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:14px;display:flex;flex-direction:column;gap:8px}
+.edit-form .row2{display:flex;gap:8px}
+.edit-form input,.edit-form select{
+  padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--bg);
+  font-size:15px;font-family:inherit;color:var(--text);outline:none;width:100%;min-width:0;
 }
+.edit-form input:focus,.edit-form select:focus{border-color:var(--accent)}
+.edit-form .emoji-input{width:62px;text-align:center;flex:0 0 auto;font-size:18px}
+.edit-form .btn-primary{padding:11px}
+.edit-list{display:flex;flex-direction:column;gap:8px}
+.edit-row{display:flex;align-items:center;gap:10px;background:var(--surface-lift);border:1px solid var(--border);border-radius:12px;padding:10px 12px}
+.edit-row-main{flex:1;min-width:0}
+.edit-row-title{font-size:14px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.edit-row-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.edit-row-actions{display:flex;gap:6px;flex:0 0 auto}
+.btn-icon-sm{
+  width:34px;height:34px;display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--border);border-radius:9px;background:var(--bg);
+  cursor:pointer;color:var(--muted);font-size:15px;
+}
+.btn-icon-sm:active{background:var(--border)}
+.btn-icon-sm.danger{color:var(--danger)}
+.edit-empty{text-align:center;color:var(--muted);font-size:13px;padding:18px 8px}
+.dirty-note{
+  display:none;align-items:center;gap:6px;background:rgba(212,196,168,.12);
+  border:1px solid rgba(212,196,168,.35);color:var(--accent);
+  font-size:12px;font-weight:700;border-radius:10px;padding:9px 12px;margin-bottom:12px;
+}
+.dirty-note.show{display:flex}
+.hint{font-size:11px;line-height:1.5;color:var(--muted);margin-top:8px}
+.gh-status{font-size:12px;line-height:1.5;margin-top:10px;font-weight:700;word-break:break-word}
+.gh-status.ok{color:var(--success)}
+.gh-status.err{color:var(--danger)}
+.gh-status.work{color:var(--accent)}
+.steps{font-size:11px;line-height:1.6;color:var(--muted);background:var(--surface-lift);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:14px}
+.steps b{color:var(--text)}
+.steps a{color:var(--accent)}
 </style>
 </head>
 <body>
@@ -283,16 +321,24 @@ button{font-family:inherit}
 <header class="app-header">
   <div class="logo-group">
     <h1 class="app-title">☕ Coffee POS</h1>
-    <span class="app-version" id="app-version">v1.0.0</span>
+    <span class="app-version" id="app-version">v1.1.0</span>
   </div>
-  <button class="icon-btn cart-btn" id="cart-btn" title="Корзина" aria-label="Корзина">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="9" cy="20" r="1.4"></circle>
-      <circle cx="18" cy="20" r="1.4"></circle>
-      <path d="M2 3h2.4l2.2 11.2a2 2 0 0 0 2 1.6h8.6a2 2 0 0 0 2-1.6L21 7H5"></path>
-    </svg>
-    <span class="badge" id="cart-badge">0</span>
-  </button>
+  <div class="header-actions">
+    <button class="icon-btn" id="editor-btn" title="Редактировать меню" aria-label="Редактировать меню">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17v3z"></path>
+        <line x1="13.5" y1="6.5" x2="17.5" y2="10.5"></line>
+      </svg>
+    </button>
+    <button class="icon-btn cart-btn" id="cart-btn" title="Корзина" aria-label="Корзина">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="9" cy="20" r="1.4"></circle>
+        <circle cx="18" cy="20" r="1.4"></circle>
+        <path d="M2 3h2.4l2.2 11.2a2 2 0 0 0 2 1.6h8.6a2 2 0 0 0 2-1.6L21 7H5"></path>
+      </svg>
+      <span class="badge" id="cart-badge">0</span>
+    </button>
+  </div>
 </header>
 
 <nav class="tab-nav">
@@ -441,36 +487,133 @@ button{font-family:inherit}
   </div>
 </div>
 
+<div class="modal" id="editor-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <span style="width:42px"></span>
+      <h2>Меню</h2>
+      <button class="icon-btn" id="editor-close" title="Закрыть" aria-label="Закрыть">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <div class="edit-tabs">
+      <button class="tab-btn active" data-etab="products">Позиции</button>
+      <button class="tab-btn" data-etab="categories">Категории</button>
+      <button class="tab-btn" data-etab="github">GitHub</button>
+    </div>
+
+    <div class="dirty-note" id="dirty-note">● Есть несохранённые изменения — отправьте меню на GitHub</div>
+
+    <div id="etab-products">
+      <div class="edit-form">
+        <input type="text" id="prod-name" placeholder="Название позиции" autocomplete="off" />
+        <div class="row2">
+          <input type="number" inputmode="decimal" id="prod-price" placeholder="Цена, Br" />
+          <input type="text" id="prod-emoji" class="emoji-input" placeholder="☕" maxlength="3" />
+        </div>
+        <select id="prod-category"></select>
+        <button class="btn-primary" id="prod-save">Добавить позицию</button>
+        <button class="btn-outline" id="prod-cancel" style="display:none">Отменить редактирование</button>
+      </div>
+      <div class="edit-list" id="editor-products-list"></div>
+    </div>
+
+    <div id="etab-categories" style="display:none">
+      <div class="edit-form">
+        <div class="row2">
+          <input type="text" id="cat-name" placeholder="Название категории" autocomplete="off" />
+          <input type="text" id="cat-emoji" class="emoji-input" placeholder="🍵" maxlength="3" />
+        </div>
+        <button class="btn-primary" id="cat-save">Добавить категорию</button>
+        <button class="btn-outline" id="cat-cancel" style="display:none">Отменить редактирование</button>
+      </div>
+      <div class="edit-list" id="editor-categories-list"></div>
+    </div>
+
+    <div id="etab-github" style="display:none">
+      <div class="steps">
+        <b>Как подключить запись в GitHub (один раз):</b><br>
+        1. Откройте <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">создание токена</a>.<br>
+        2. Repository access → <b>Only select repositories</b> → выберите <b>coffee-pos</b>.<br>
+        3. Permissions → Repository permissions → <b>Contents: Read and write</b>.<br>
+        4. Create token и вставьте его ниже.<br>
+        Токен хранится только на этом телефоне.
+      </div>
+      <div class="form-row">
+        <label for="gh-owner">Владелец</label>
+        <input type="text" id="gh-owner" placeholder="damn-devil" autocomplete="off" />
+      </div>
+      <div class="form-row">
+        <label for="gh-repo">Репозиторий</label>
+        <input type="text" id="gh-repo" placeholder="coffee-pos" autocomplete="off" />
+      </div>
+      <div class="form-row">
+        <label for="gh-branch">Ветка</label>
+        <input type="text" id="gh-branch" placeholder="main" autocomplete="off" />
+      </div>
+      <div class="form-row">
+        <label for="gh-token">Токен</label>
+        <input type="password" id="gh-token" placeholder="github_pat_..." autocomplete="off" />
+      </div>
+      <div class="modal-actions" style="margin-top:4px">
+        <button class="btn-outline" id="gh-check">Проверить</button>
+        <button class="btn-primary" id="gh-save">Сохранить</button>
+      </div>
+      <button class="btn-primary" id="gh-push" style="width:100%;margin-top:10px">Отправить меню на GitHub</button>
+      <div class="gh-status" id="gh-status"></div>
+      <div class="hint">Изменения сразу применяются на этом телефоне. На GitHub они попадают после нажатия «Отправить меню на GitHub»; сайт обновится примерно через минуту.</div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast">Готово</div>
 
 <script>
 var STORAGE_KEY = 'coffee_pos_data';
-var APP_VERSION = '1.0.0';
+var MENU_CACHE_KEY = 'coffee_pos_menu';
+var MENU_DIRTY_KEY = 'coffee_pos_menu_dirty';
+var GH_KEY = 'coffee_pos_github';
+var APP_VERSION = '1.1.0';
+var MENU_FILE = 'menu.json';
 
 var state = {
+  categories: [],
   products: [],
   cart: [],
   sales: [],
   shift: { open: false, openedAt: null, id: null },
-  activeCategory: 'all'
+  activeCategory: 'all',
+  editingProductId: null,
+  editingCategoryId: null,
+  editorTab: 'products'
 };
 
-var DEMO_PRODUCTS = [
-  { id: 'p1',  name: 'Эспрессо',      category: 'coffee',  price: 150, desc: 'Крепкий кофе 30 мл',        emoji: '☕' },
-  { id: 'p2',  name: 'Американо',     category: 'coffee',  price: 180, desc: 'Эспрессо с водой 180 мл',   emoji: '☕' },
-  { id: 'p3',  name: 'Капучино',      category: 'coffee',  price: 220, desc: 'Кофе с молочной пеной',     emoji: '☕' },
-  { id: 'p4',  name: 'Латте',         category: 'coffee',  price: 240, desc: 'Кофе с молоком 250 мл',     emoji: '☕' },
-  { id: 'p5',  name: 'Раф',           category: 'coffee',  price: 260, desc: 'Кофе со сливками 180 мл',   emoji: '☕' },
-  { id: 'p6',  name: 'Флэт уайт',     category: 'coffee',  price: 250, desc: 'Двойной эспрессо с молоком', emoji: '☕' },
-  { id: 'p7',  name: 'Чизкейк',       category: 'dessert', price: 320, desc: 'С ягодным соусом',          emoji: '🍰' },
-  { id: 'p8',  name: 'Тирамису',      category: 'dessert', price: 290, desc: 'Классический десерт',       emoji: '🍰' },
-  { id: 'p9',  name: 'Брауни',        category: 'dessert', price: 240, desc: 'Шоколадный, с орехами',     emoji: '🍪' },
-  { id: 'p10', name: 'Круассан',      category: 'dessert', price: 190, desc: 'С миндалём',                emoji: '🥐' },
-  { id: 'p11', name: 'Чёрный чай',    category: 'tea',     price: 120, desc: '350 мл',                    emoji: '🍵' },
-  { id: 'p12', name: 'Зелёный чай',   category: 'tea',     price: 130, desc: '350 мл',                    emoji: '🍵' }
-];
+var DEFAULT_MENU = {
+  categories: [
+    { id: 'coffee', name: 'Кофе', emoji: '☕' },
+    { id: 'dessert', name: 'Десерты', emoji: '🍰' },
+    { id: 'tea', name: 'Чай', emoji: '🍵' }
+  ],
+  products: [
+    { id: 'p1',  name: 'Эспрессо',    category: 'coffee',  price: 150, desc: '', emoji: '☕' },
+    { id: 'p2',  name: 'Американо',   category: 'coffee',  price: 180, desc: '', emoji: '☕' },
+    { id: 'p3',  name: 'Капучино',    category: 'coffee',  price: 220, desc: '', emoji: '☕' },
+    { id: 'p4',  name: 'Латте',       category: 'coffee',  price: 240, desc: '', emoji: '☕' },
+    { id: 'p5',  name: 'Раф',         category: 'coffee',  price: 260, desc: '', emoji: '☕' },
+    { id: 'p6',  name: 'Флэт уайт',   category: 'coffee',  price: 250, desc: '', emoji: '☕' },
+    { id: 'p7',  name: 'Чизкейк',     category: 'dessert', price: 320, desc: '', emoji: '🍰' },
+    { id: 'p8',  name: 'Тирамису',    category: 'dessert', price: 290, desc: '', emoji: '🍰' },
+    { id: 'p9',  name: 'Брауни',      category: 'dessert', price: 240, desc: '', emoji: '🍪' },
+    { id: 'p10', name: 'Круассан',    category: 'dessert', price: 190, desc: '', emoji: '🥐' },
+    { id: 'p11', name: 'Чёрный чай',  category: 'tea',     price: 120, desc: '', emoji: '🍵' },
+    { id: 'p12', name: 'Зелёный чай', category: 'tea',     price: 130, desc: '', emoji: '🍵' }
+  ]
+};
 
-var CATEGORY_LABELS = { all: 'Все', coffee: 'Кофе', dessert: 'Десерты', tea: 'Чай' };
 var PAYMENT_LABELS = { cash: 'Наличные', card: 'Карта', mixed: 'Смешанный' };
 
 function $(id) { return document.getElementById(id); }
@@ -489,8 +632,31 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-function categoryLabel(cat) {
-  return CATEGORY_LABELS[cat] || cat;
+function categoryName(id) {
+  for (var i = 0; i < state.categories.length; i++) {
+    if (state.categories[i].id === id) return state.categories[i].name;
+  }
+  return 'Без категории';
+}
+
+function getProduct(id) {
+  for (var i = 0; i < state.products.length; i++) {
+    if (state.products[i].id === id) return state.products[i];
+  }
+  return null;
+}
+
+/* ---------------- данные ---------------- */
+
+function readJson(key) {
+  try {
+    var raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { return null; }
+}
+
+function writeJson(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
 }
 
 function loadStoredData() {
@@ -498,7 +664,6 @@ function loadStoredData() {
     var raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return;
     var data = JSON.parse(raw);
-    if (Array.isArray(data.products) && data.products.length) state.products = data.products;
     if (Array.isArray(data.sales)) state.sales = data.sales;
     if (data.shift && typeof data.shift === 'object') {
       state.shift = {
@@ -514,40 +679,120 @@ function loadStoredData() {
 
 function saveData() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      products: state.products,
-      sales: state.sales,
-      shift: state.shift
-    }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ sales: state.sales, shift: state.shift }));
   } catch (err) {
     console.warn('Не удалось сохранить данные', err);
   }
 }
 
+function applyMenu(menu) {
+  if (!menu || !Array.isArray(menu.products)) return false;
+  state.categories = Array.isArray(menu.categories) ? menu.categories : [];
+  state.products = menu.products;
+  var known = false;
+  for (var i = 0; i < state.categories.length; i++) {
+    if (state.categories[i].id === state.activeCategory) known = true;
+  }
+  if (state.activeCategory !== 'all' && !known) state.activeCategory = 'all';
+  return true;
+}
+
+function cacheMenu() {
+  writeJson(MENU_CACHE_KEY, {
+    updatedAt: new Date().toISOString(),
+    categories: state.categories,
+    products: state.products
+  });
+}
+
+function isDirty() {
+  try { return localStorage.getItem(MENU_DIRTY_KEY) === '1'; } catch (e) { return false; }
+}
+
+function markDirty() {
+  try { localStorage.setItem(MENU_DIRTY_KEY, '1'); } catch (e) {}
+  updateDirtyNote();
+}
+
+function markClean() {
+  try { localStorage.removeItem(MENU_DIRTY_KEY); } catch (e) {}
+  updateDirtyNote();
+}
+
+function updateDirtyNote() {
+  var note = $('dirty-note');
+  if (note) note.classList.toggle('show', isDirty());
+}
+
+function bootMenu() {
+  var cached = readJson(MENU_CACHE_KEY);
+  if (!cached || !Array.isArray(cached.products)) {
+    var old = readJson(STORAGE_KEY);
+    if (old && Array.isArray(old.products) && old.products.length) {
+      cached = { categories: DEFAULT_MENU.categories, products: old.products };
+    }
+  }
+  applyMenu(cached || DEFAULT_MENU);
+  cacheMenu();
+  saveData();
+
+  if (location.protocol.indexOf('http') !== 0) return;
+
+  fetch('./' + MENU_FILE + '?t=' + Date.now(), { cache: 'no-store' })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (data) {
+      if (!data || !Array.isArray(data.products)) return;
+      if (isDirty()) return;
+      if (applyMenu(data)) {
+        cacheMenu();
+        renderCategories();
+        renderProducts();
+        renderEditor();
+      }
+    })
+    .catch(function () {});
+}
+
+/* ---------------- запуск ---------------- */
+
 function init() {
   loadStoredData();
-  if (!state.products.length) {
-    state.products = DEMO_PRODUCTS.slice();
-    saveData();
-  }
+  bootMenu();
+
   var versionEl = $('app-version');
   if (versionEl) versionEl.textContent = 'v' + APP_VERSION;
+
   renderCategories();
   renderProducts();
   renderCart();
   renderShift();
+  renderEditor();
+  updateDirtyNote();
   setupListeners();
 }
 
 function setupListeners() {
-  var tabs = document.querySelectorAll('.tab-btn');
+  var tabs = document.querySelectorAll('.tab-nav > .tab-btn');
   for (var i = 0; i < tabs.length; i++) {
     tabs[i].addEventListener('click', function () {
       switchTab(this.getAttribute('data-tab'));
     });
   }
 
+  var editTabs = document.querySelectorAll('.edit-tabs .tab-btn');
+  for (var j = 0; j < editTabs.length; j++) {
+    editTabs[j].addEventListener('click', function () {
+      switchEditorTab(this.getAttribute('data-etab'));
+    });
+  }
+
   $('menu-search').addEventListener('input', renderProducts);
+
+  $('editor-btn').onclick = openEditor;
+  $('editor-close').onclick = closeEditor;
+  $('editor-modal').addEventListener('click', function (e) {
+    if (e.target === this) closeEditor();
+  });
 
   $('cart-btn').onclick = openCart;
   $('cart-back').onclick = closeCart;
@@ -567,11 +812,20 @@ function setupListeners() {
   $('checkout-card').addEventListener('input', calcChange);
   $('checkout-cash').addEventListener('focus', function () { this.select(); });
 
+  $('prod-save').addEventListener('click', saveProductFromForm);
+  $('prod-cancel').addEventListener('click', resetProductForm);
+  $('cat-save').addEventListener('click', saveCategoryFromForm);
+  $('cat-cancel').addEventListener('click', resetCategoryForm);
+
+  $('gh-save').addEventListener('click', saveGitHubSettings);
+  $('gh-check').addEventListener('click', checkGitHub);
+  $('gh-push').addEventListener('click', pushMenuToGitHub);
+
   $('shift-toggle').addEventListener('click', toggleShift);
 }
 
 function switchTab(tab) {
-  var tabs = document.querySelectorAll('.tab-btn');
+  var tabs = document.querySelectorAll('.tab-nav > .tab-btn');
   for (var i = 0; i < tabs.length; i++) {
     tabs[i].classList.toggle('active', tabs[i].getAttribute('data-tab') === tab);
   }
@@ -582,19 +836,16 @@ function switchTab(tab) {
   if (tab === 'shift') renderShift();
 }
 
+/* ---------------- меню ---------------- */
+
 function renderCategories() {
-  var cats = ['all'];
-  var seen = {};
-  for (var i = 0; i < state.products.length; i++) {
-    var cat = state.products[i].category;
-    if (cat && !seen[cat]) { seen[cat] = true; cats.push(cat); }
-  }
+  var cats = [{ id: 'all', name: 'Все' }].concat(state.categories);
   var html = '';
-  for (var k = 0; k < cats.length; k++) {
-    var c = cats[k];
-    var active = state.activeCategory === c ? ' active' : '';
-    html += '<button type="button" class="category-btn' + active + '" data-cat="' + escapeHtml(c) + '">' +
-      escapeHtml(categoryLabel(c)) + '</button>';
+  for (var i = 0; i < cats.length; i++) {
+    var c = cats[i];
+    var active = state.activeCategory === c.id ? ' active' : '';
+    html += '<button type="button" class="category-btn' + active + '" data-cat="' + escapeHtml(c.id) + '">' +
+      escapeHtml(c.name) + '</button>';
   }
   $('category-tabs').innerHTML = html;
 
@@ -616,7 +867,7 @@ function renderProducts() {
   for (var i = 0; i < state.products.length; i++) {
     var p = state.products[i];
     var matchCat = state.activeCategory === 'all' || p.category === state.activeCategory;
-    var haystack = (p.name + ' ' + (p.desc || '')).toLowerCase();
+    var haystack = ((p.name || '') + ' ' + (p.desc || '')).toLowerCase();
     if (matchCat && (search === '' || haystack.indexOf(search) >= 0)) visible.push(p);
   }
 
@@ -637,7 +888,7 @@ function renderProducts() {
       '<div class="item-img">' + (item.emoji || '☕') + '</div>' +
       '<div class="item-info">' +
         '<span class="item-name">' + escapeHtml(item.name) + '</span>' +
-        '<span class="item-cat">' + escapeHtml(categoryLabel(item.category)) + '</span>' +
+        '<span class="item-cat">' + escapeHtml(categoryName(item.category)) + '</span>' +
         '<span class="item-price">' + formatMoney(item.price) + '</span>' +
       '</div>' +
     '</button>';
@@ -652,11 +903,10 @@ function renderProducts() {
   }
 }
 
+/* ---------------- корзина ---------------- */
+
 function addToCart(productId) {
-  var product = null;
-  for (var i = 0; i < state.products.length; i++) {
-    if (state.products[i].id === productId) { product = state.products[i]; break; }
-  }
+  var product = getProduct(productId);
   if (!product) return;
 
   var existing = null;
@@ -695,11 +945,8 @@ function changeQty(productId, delta) {
   }
   if (!item) return;
   item.qty += delta;
-  if (item.qty <= 0) {
-    removeFromCart(productId);
-  } else {
-    renderCart();
-  }
+  if (item.qty <= 0) removeFromCart(productId);
+  else renderCart();
 }
 
 function clearCart() {
@@ -726,8 +973,7 @@ function renderCart() {
   badge.style.display = count > 0 ? 'flex' : 'none';
 
   var wrap = $('cart-items');
-  var total = cartTotal();
-  $('cart-total').textContent = formatMoney(total);
+  $('cart-total').textContent = formatMoney(cartTotal());
   $('cart-checkout').disabled = state.cart.length === 0;
 
   if (!state.cart.length) {
@@ -756,11 +1002,10 @@ function renderCart() {
 
   var rows = wrap.querySelectorAll('.cart-item');
   for (var r = 0; r < rows.length; r++) {
-    var row = rows[r];
     var id = state.cart[r].id;
-    row.querySelector('[data-act="minus"]').addEventListener('click', makeQtyHandler(id, -1));
-    row.querySelector('[data-act="plus"]').addEventListener('click', makeQtyHandler(id, 1));
-    row.querySelector('[data-act="remove"]').addEventListener('click', makeRemoveHandler(id));
+    rows[r].querySelector('[data-act="minus"]').addEventListener('click', makeQtyHandler(id, -1));
+    rows[r].querySelector('[data-act="plus"]').addEventListener('click', makeQtyHandler(id, 1));
+    rows[r].querySelector('[data-act="remove"]').addEventListener('click', makeRemoveHandler(id));
   }
 }
 
@@ -780,6 +1025,8 @@ function openCart() {
 function closeCart() {
   $('cart-panel').classList.remove('open');
 }
+
+/* ---------------- оплата ---------------- */
 
 function openCheckout() {
   if (!state.cart.length) { showToast('Корзина пуста'); return; }
@@ -815,22 +1062,20 @@ function renderCheckoutSummary(total) {
 function onPaymentChange() {
   var payment = $('checkout-payment').value;
   var total = cartTotal();
-  var cashRow = $('cash-row');
-  var cardRow = $('card-pay-row');
 
   if (payment === 'card') {
-    cashRow.style.display = 'none';
-    cardRow.style.display = 'none';
+    $('cash-row').style.display = 'none';
+    $('card-pay-row').style.display = 'none';
     $('checkout-card').value = '';
     $('checkout-cash').value = '';
   } else if (payment === 'mixed') {
-    cashRow.style.display = 'block';
-    cardRow.style.display = 'flex';
+    $('cash-row').style.display = 'block';
+    $('card-pay-row').style.display = 'flex';
     if (!$('checkout-cash').value) $('checkout-cash').value = '';
     if (!$('checkout-card').value) $('checkout-card').value = '';
   } else {
-    cashRow.style.display = 'block';
-    cardRow.style.display = 'none';
+    $('cash-row').style.display = 'block';
+    $('card-pay-row').style.display = 'none';
     $('checkout-card').value = '';
     if (!$('checkout-cash').value) $('checkout-cash').value = total;
   }
@@ -842,7 +1087,7 @@ function calcChange() {
   var payment = $('checkout-payment').value;
   var cash = parseFloat($('checkout-cash').value) || 0;
   var card = parseFloat($('checkout-card').value) || 0;
-  var paid = 0;
+  var paid;
 
   if (payment === 'cash') paid = cash;
   else if (payment === 'card') paid = total;
@@ -884,7 +1129,6 @@ function confirmCheckout() {
   }
 
   var paidTotal = payment === 'cash' ? cash : (payment === 'card' ? total : cash + card);
-  var change = Math.max(0, paidTotal - total);
 
   if (!state.shift.open) {
     state.shift = { open: true, openedAt: Date.now(), id: 'shift_' + Date.now() };
@@ -899,18 +1143,19 @@ function confirmCheckout() {
     shiftId: state.shift.id || null,
     cash: cashPart,
     card: cardPart,
-    change: change
+    change: Math.max(0, paidTotal - total)
   };
 
   state.sales.push(sale);
   state.cart = [];
-
   saveData();
   renderCart();
   renderShift();
   closeCheckout();
   showToast('Продажа #' + sale.id + ' — ' + formatMoney(total));
 }
+
+/* ---------------- смена ---------------- */
 
 function toggleShift() {
   if (!state.shift.open) {
@@ -979,7 +1224,11 @@ function renderShift() {
     total += sale.total;
     if (sale.payment === 'cash') cashTotal += sale.total;
     else if (sale.payment === 'card') cardTotal += sale.total;
-    else { mixedTotal += sale.total; cashTotal += sale.cash || 0; cardTotal += sale.card || 0; }
+    else {
+      mixedTotal += sale.total;
+      cashTotal += sale.cash || 0;
+      cardTotal += sale.card || 0;
+    }
 
     for (var j = 0; j < sale.items.length; j++) {
       var item = sale.items[j];
@@ -1039,6 +1288,405 @@ function renderShift() {
   $('shift-sales-list').innerHTML = listHtml;
 }
 
+/* ---------------- редактор меню ---------------- */
+
+function openEditor() {
+  renderEditor();
+  fillGitHubFields();
+  updateDirtyNote();
+  $('editor-modal').classList.add('open');
+}
+
+function closeEditor() {
+  $('editor-modal').classList.remove('open');
+  resetProductForm();
+  resetCategoryForm();
+}
+
+function switchEditorTab(tab) {
+  state.editorTab = tab;
+  var tabs = document.querySelectorAll('.edit-tabs .tab-btn');
+  for (var i = 0; i < tabs.length; i++) {
+    tabs[i].classList.toggle('active', tabs[i].getAttribute('data-etab') === tab);
+  }
+  $('etab-products').style.display = tab === 'products' ? 'block' : 'none';
+  $('etab-categories').style.display = tab === 'categories' ? 'block' : 'none';
+  $('etab-github').style.display = tab === 'github' ? 'block' : 'none';
+}
+
+function renderEditor() {
+  renderEditorProducts();
+  renderEditorCategories();
+  fillCategorySelect();
+}
+
+function fillCategorySelect() {
+  var select = $('prod-category');
+  if (!select) return;
+  var options = '';
+  for (var i = 0; i < state.categories.length; i++) {
+    var c = state.categories[i];
+    options += '<option value="' + escapeHtml(c.id) + '">' + escapeHtml(c.name) + '</option>';
+  }
+  if (!state.categories.length) options = '<option value="">Сначала добавьте категорию</option>';
+  select.innerHTML = options;
+}
+
+function renderEditorProducts() {
+  var list = $('editor-products-list');
+  if (!list) return;
+  if (!state.products.length) {
+    list.innerHTML = '<div class="edit-empty">Позиций пока нет</div>';
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < state.products.length; i++) {
+    var p = state.products[i];
+    html += '<div class="edit-row">' +
+      '<div class="edit-row-main">' +
+        '<div class="edit-row-title">' + (p.emoji || '') + ' ' + escapeHtml(p.name) + '</div>' +
+        '<div class="edit-row-sub">' + escapeHtml(categoryName(p.category)) + ' · ' + formatMoney(p.price) + '</div>' +
+      '</div>' +
+      '<div class="edit-row-actions">' +
+        '<button type="button" class="btn-icon-sm" data-edit="' + escapeHtml(p.id) + '">✏️</button>' +
+        '<button type="button" class="btn-icon-sm danger" data-del="' + escapeHtml(p.id) + '">🗑</button>' +
+      '</div>' +
+    '</div>';
+  }
+  list.innerHTML = html;
+
+  var editBtns = list.querySelectorAll('[data-edit]');
+  for (var e = 0; e < editBtns.length; e++) {
+    editBtns[e].addEventListener('click', function () { editProduct(this.getAttribute('data-edit')); });
+  }
+  var delBtns = list.querySelectorAll('[data-del]');
+  for (var d = 0; d < delBtns.length; d++) {
+    delBtns[d].addEventListener('click', function () { deleteProduct(this.getAttribute('data-del')); });
+  }
+}
+
+function renderEditorCategories() {
+  var list = $('editor-categories-list');
+  if (!list) return;
+  if (!state.categories.length) {
+    list.innerHTML = '<div class="edit-empty">Категорий пока нет</div>';
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < state.categories.length; i++) {
+    var c = state.categories[i];
+    var count = 0;
+    for (var j = 0; j < state.products.length; j++) {
+      if (state.products[j].category === c.id) count++;
+    }
+    html += '<div class="edit-row">' +
+      '<div class="edit-row-main">' +
+        '<div class="edit-row-title">' + (c.emoji || '') + ' ' + escapeHtml(c.name) + '</div>' +
+        '<div class="edit-row-sub">' + count + ' поз.</div>' +
+      '</div>' +
+      '<div class="edit-row-actions">' +
+        '<button type="button" class="btn-icon-sm" data-cedit="' + escapeHtml(c.id) + '">✏️</button>' +
+        '<button type="button" class="btn-icon-sm danger" data-cdel="' + escapeHtml(c.id) + '">🗑</button>' +
+      '</div>' +
+    '</div>';
+  }
+  list.innerHTML = html;
+
+  var editBtns = list.querySelectorAll('[data-cedit]');
+  for (var e = 0; e < editBtns.length; e++) {
+    editBtns[e].addEventListener('click', function () { editCategory(this.getAttribute('data-cedit')); });
+  }
+  var delBtns = list.querySelectorAll('[data-cdel]');
+  for (var d = 0; d < delBtns.length; d++) {
+    delBtns[d].addEventListener('click', function () { deleteCategory(this.getAttribute('data-cdel')); });
+  }
+}
+
+function saveProductFromForm() {
+  var name = ($('prod-name').value || '').trim();
+  var price = parseFloat($('prod-price').value);
+  var emoji = ($('prod-emoji').value || '').trim() || '☕';
+  var category = $('prod-category').value;
+
+  if (!name) { showToast('Введите название'); return; }
+  if (!price || price <= 0) { showToast('Введите цену'); return; }
+  if (!category) { showToast('Сначала добавьте категорию'); return; }
+
+  if (state.editingProductId) {
+    var p = getProduct(state.editingProductId);
+    if (p) {
+      p.name = name;
+      p.price = price;
+      p.emoji = emoji;
+      p.category = category;
+    }
+    showToast('Позиция обновлена');
+  } else {
+    state.products.push({
+      id: 'p' + Date.now(),
+      name: name,
+      price: price,
+      emoji: emoji,
+      category: category,
+      desc: ''
+    });
+    showToast('Позиция добавлена');
+  }
+
+  afterMenuChange();
+  resetProductForm();
+}
+
+function editProduct(id) {
+  var p = getProduct(id);
+  if (!p) return;
+  state.editingProductId = id;
+  $('prod-name').value = p.name;
+  $('prod-price').value = p.price;
+  $('prod-emoji').value = p.emoji || '';
+  fillCategorySelect();
+  $('prod-category').value = p.category;
+  $('prod-save').textContent = 'Сохранить изменения';
+  $('prod-cancel').style.display = 'block';
+  switchEditorTab('products');
+  $('prod-name').focus();
+}
+
+function resetProductForm() {
+  state.editingProductId = null;
+  $('prod-name').value = '';
+  $('prod-price').value = '';
+  $('prod-emoji').value = '';
+  $('prod-save').textContent = 'Добавить позицию';
+  $('prod-cancel').style.display = 'none';
+  fillCategorySelect();
+}
+
+function deleteProduct(id) {
+  var p = getProduct(id);
+  if (!p) return;
+  if (!window.confirm('Удалить «' + p.name + '»?')) return;
+  var next = [];
+  for (var i = 0; i < state.products.length; i++) {
+    if (state.products[i].id !== id) next.push(state.products[i]);
+  }
+  state.products = next;
+  var cart = [];
+  for (var j = 0; j < state.cart.length; j++) {
+    if (state.cart[j].id !== id) cart.push(state.cart[j]);
+  }
+  state.cart = cart;
+  afterMenuChange();
+  showToast('Позиция удалена');
+}
+
+function saveCategoryFromForm() {
+  var name = ($('cat-name').value || '').trim();
+  var emoji = ($('cat-emoji').value || '').trim() || '📁';
+  if (!name) { showToast('Введите название категории'); return; }
+
+  if (state.editingCategoryId) {
+    for (var i = 0; i < state.categories.length; i++) {
+      if (state.categories[i].id === state.editingCategoryId) {
+        state.categories[i].name = name;
+        state.categories[i].emoji = emoji;
+      }
+    }
+    showToast('Категория обновлена');
+  } else {
+    state.categories.push({ id: 'c' + Date.now(), name: name, emoji: emoji });
+    showToast('Категория добавлена');
+  }
+
+  afterMenuChange();
+  resetCategoryForm();
+}
+
+function editCategory(id) {
+  var c = null;
+  for (var i = 0; i < state.categories.length; i++) {
+    if (state.categories[i].id === id) { c = state.categories[i]; break; }
+  }
+  if (!c) return;
+  state.editingCategoryId = id;
+  $('cat-name').value = c.name;
+  $('cat-emoji').value = c.emoji || '';
+  $('cat-save').textContent = 'Сохранить изменения';
+  $('cat-cancel').style.display = 'block';
+  switchEditorTab('categories');
+  $('cat-name').focus();
+}
+
+function resetCategoryForm() {
+  state.editingCategoryId = null;
+  $('cat-name').value = '';
+  $('cat-emoji').value = '';
+  $('cat-save').textContent = 'Добавить категорию';
+  $('cat-cancel').style.display = 'none';
+}
+
+function deleteCategory(id) {
+  var used = 0;
+  for (var i = 0; i < state.products.length; i++) {
+    if (state.products[i].category === id) used++;
+  }
+  if (used > 0) {
+    showToast('В категории ' + used + ' поз. — сначала удалите или перенесите их');
+    return;
+  }
+  var c = null;
+  for (var j = 0; j < state.categories.length; j++) {
+    if (state.categories[j].id === id) { c = state.categories[j]; break; }
+  }
+  if (!c) return;
+  if (!window.confirm('Удалить категорию «' + c.name + '»?')) return;
+  var next = [];
+  for (var k = 0; k < state.categories.length; k++) {
+    if (state.categories[k].id !== id) next.push(state.categories[k]);
+  }
+  state.categories = next;
+  afterMenuChange();
+  showToast('Категория удалена');
+}
+
+function afterMenuChange() {
+  cacheMenu();
+  markDirty();
+  renderCategories();
+  renderProducts();
+  renderEditor();
+}
+
+/* ---------------- GitHub ---------------- */
+
+function getGitHubConfig() {
+  return readJson(GH_KEY);
+}
+
+function fillGitHubFields() {
+  var cfg = getGitHubConfig() || {};
+  $('gh-owner').value = cfg.owner || 'damn-devil';
+  $('gh-repo').value = cfg.repo || 'coffee-pos';
+  $('gh-branch').value = cfg.branch || 'main';
+  $('gh-token').value = cfg.token || '';
+}
+
+function readGitHubFields() {
+  return {
+    owner: ($('gh-owner').value || '').trim(),
+    repo: ($('gh-repo').value || '').trim(),
+    branch: ($('gh-branch').value || '').trim() || 'main',
+    token: ($('gh-token').value || '').trim()
+  };
+}
+
+function saveGitHubSettings() {
+  var cfg = readGitHubFields();
+  if (!cfg.owner || !cfg.repo) { setGhStatus('Заполните владельца и репозиторий', 'err'); return; }
+  if (!cfg.token) { setGhStatus('Вставьте токен GitHub', 'err'); return; }
+  writeJson(GH_KEY, cfg);
+  setGhStatus('Настройки сохранены на этом устройстве', 'ok');
+}
+
+function setGhStatus(text, kind) {
+  var el = $('gh-status');
+  el.textContent = text;
+  el.className = 'gh-status' + (kind ? ' ' + kind : '');
+}
+
+function ghHeaders(cfg) {
+  return {
+    'Authorization': 'Bearer ' + cfg.token,
+    'Accept': 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+    'Content-Type': 'application/json'
+  };
+}
+
+function toBase64Utf8(str) {
+  var bytes = new TextEncoder().encode(str);
+  var binary = '';
+  for (var i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary);
+}
+
+function menuPayload() {
+  return JSON.stringify({
+    updatedAt: new Date().toISOString(),
+    categories: state.categories,
+    products: state.products
+  }, null, 2) + '\n';
+}
+
+function checkGitHub() {
+  var cfg = readGitHubFields();
+  if (!cfg.owner || !cfg.repo || !cfg.token) { setGhStatus('Заполните все поля', 'err'); return; }
+  setGhStatus('Проверяем доступ…', 'work');
+  fetch('https://api.github.com/repos/' + cfg.owner + '/' + cfg.repo, { headers: ghHeaders(cfg) })
+    .then(function (res) {
+      if (res.ok) return res.json();
+      return res.json().then(function (err) {
+        throw new Error(err.message || ('HTTP ' + res.status));
+      });
+    })
+    .then(function (repo) {
+      writeJson(GH_KEY, cfg);
+      setGhStatus('Доступ есть: ' + repo.full_name + ' (ветка ' + cfg.branch + ')', 'ok');
+    })
+    .catch(function (err) {
+      setGhStatus('Ошибка: ' + err.message, 'err');
+    });
+}
+
+function pushMenuToGitHub() {
+  var cfg = readGitHubFields();
+  if (!cfg.owner || !cfg.repo || !cfg.token) {
+    setGhStatus('Сначала заполните и сохраните настройки GitHub', 'err');
+    return;
+  }
+  writeJson(GH_KEY, cfg);
+
+  var api = 'https://api.github.com/repos/' + cfg.owner + '/' + cfg.repo + '/contents/' + MENU_FILE;
+  var branch = cfg.branch || 'main';
+  setGhStatus('Отправляем меню на GitHub…', 'work');
+
+  fetch(api + '?ref=' + encodeURIComponent(branch), { headers: ghHeaders(cfg) })
+    .then(function (res) {
+      if (res.status === 404) return { sha: null };
+      if (!res.ok) {
+        return res.json().then(function (err) { throw new Error(err.message || ('HTTP ' + res.status)); });
+      }
+      return res.json();
+    })
+    .then(function (meta) {
+      var body = {
+        message: 'Обновление меню',
+        content: toBase64Utf8(menuPayload()),
+        branch: branch
+      };
+      if (meta && meta.sha) body.sha = meta.sha;
+      return fetch(api, {
+        method: 'PUT',
+        headers: ghHeaders(cfg),
+        body: JSON.stringify(body)
+      });
+    })
+    .then(function (res) {
+      if (res.ok) return res.json();
+      return res.json().then(function (err) { throw new Error(err.message || ('HTTP ' + res.status)); });
+    })
+    .then(function () {
+      markClean();
+      setGhStatus('Готово: меню сохранено в ' + cfg.owner + '/' + cfg.repo + '. Сайт обновится через ~1 минуту.', 'ok');
+      showToast('Меню сохранено на GitHub');
+    })
+    .catch(function (err) {
+      setGhStatus('Не удалось сохранить: ' + err.message, 'err');
+    });
+}
+
+/* ---------------- прочее ---------------- */
+
 function showToast(message) {
   var toast = $('toast');
   toast.textContent = message;
@@ -1046,7 +1694,7 @@ function showToast(message) {
   clearTimeout(showToast._timer);
   showToast._timer = setTimeout(function () {
     toast.classList.remove('show');
-  }, 2200);
+  }, 2400);
 }
 
 init();
