@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>Coffee POS — Касса</title>
+<meta name="theme-color" content="#0a0a0a" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Coffee POS" />
+<link rel="manifest" href="./manifest.json" />
+<link rel="icon" href="./icon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="./icon-180.png" />
+<script>
+/* Самовосстановление: убираем service worker и кэш от предыдущих сборок */
+(function () {
+  var CURRENT_SW = /\/sw\.js$/;
+  var CURRENT_CACHE = 'coffee-pos-v3';
+  try {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function (regs) {
+        for (var i = 0; i < regs.length; i++) {
+          var url = regs[i].active ? regs[i].active.scriptURL : (regs[i].installing ? regs[i].installing.scriptURL : '');
+          if (!CURRENT_SW.test(url || '')) regs[i].unregister();
+        }
+      }).catch(function () {});
+    }
+    if (window.caches && caches.keys) {
+      caches.keys().then(function (keys) {
+        for (var i = 0; i < keys.length; i++) {
+          if (keys[i].indexOf('coffee-pos') === 0 && keys[i] !== CURRENT_CACHE) caches.delete(keys[i]);
+        }
+      }).catch(function () {});
+    }
+  } catch (e) {}
+})();
+</script>
+<style>
+:root{
+  --bg:#0a0a0a;
+  --surface:#141414;
+  --surface-lift:#1e1e1e;
+  --border:#2a2a2a;
+  --text:#ffffff;
+  --muted:#9a9a9a;
+  --accent:#d4c4a8;
+  --accent2:#ffffff;
+  --danger:#ff6b6b;
+  --success:#4ade80;
+  --radius:16px;
+  --safe-b:env(safe-area-inset-bottom, 0px);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{touch-action:manipulation}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  background:var(--bg);color:var(--text);
+  height:100vh;width:100vw;overflow:hidden;
+  display:flex;flex-direction:column;
+}
+button{font-family:inherit}
+.app-header{
+  height:60px;flex:0 0 60px;background:var(--surface);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;border-bottom:1px solid var(--border);z-index:100;
+}
+  .logo-group{display:flex;align-items:center;gap:10px;min-width:0}
+  .app-version{
+    font-size:10px;font-weight:800;color:var(--muted);border:1px solid var(--border);
+    border-radius:8px;padding:2px 6px;letter-spacing:.5px;flex:0 0 auto;
+  }
+.app-title{
+  font-size:17px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  background:linear-gradient(to right,var(--accent2),var(--accent));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.icon-btn{
+  width:42px;height:42px;display:flex;align-items:center;justify-content:center;
+  background:var(--surface-lift);border:1px solid var(--border);border-radius:12px;
+  color:var(--text);cursor:pointer;flex:0 0 auto;
+}
+.icon-btn:active{background:var(--border)}
+.icon-btn svg{width:20px;height:20px}
+.cart-btn{position:relative}
+.badge{
+  position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;padding:0 5px;
+  background:var(--accent);color:#000;border-radius:10px;font-size:11px;font-weight:800;
+  display:none;align-items:center;justify-content:center;border:2px solid var(--surface);
+}
+.tab-nav{display:flex;flex:0 0 auto;background:var(--surface);border-bottom:1px solid var(--border);z-index:50}
+.tab-btn{
+  position:relative;flex:1;padding:14px 8px;background:transparent;border:none;
+  color:var(--muted);font-size:14px;font-weight:700;cursor:pointer;
+}
+.tab-btn.active{color:var(--accent2)}
+.tab-btn.active::after{
+  content:'';position:absolute;bottom:0;left:12px;right:12px;height:3px;
+  background:var(--accent2);border-radius:3px 3px 0 0;
+}
+.app-main{flex:1 1 auto;overflow-y:auto;padding:16px;padding-bottom:calc(16px + var(--safe-b));-webkit-overflow-scrolling:touch}
+.view{display:none;flex-direction:column;gap:16px}
+.view.active{display:flex}
+.section-header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.section-header h2{font-size:20px;font-weight:800}
+.search-wrap{position:relative;display:flex;align-items:center;flex:0 1 auto}
+.search-wrap input{
+  padding:10px 14px 10px 36px;border:1px solid var(--border);border-radius:12px;
+  background:var(--surface-lift);font-size:14px;width:170px;color:var(--text);outline:none;
+}
+.search-wrap input:focus{border-color:var(--accent)}
+.search-wrap svg{position:absolute;left:12px;color:var(--muted);width:18px;height:18px;pointer-events:none}
+.category-tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.category-tabs::-webkit-scrollbar{display:none}
+.category-btn{
+  padding:9px 16px;background:var(--surface-lift);border:1px solid var(--border);
+  border-radius:20px;color:var(--muted);font-size:13px;font-weight:700;
+  cursor:pointer;white-space:nowrap;
+}
+.category-btn.active{background:var(--accent2);color:#000;border-color:var(--accent2)}
+.products-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.product-card{
+  background:var(--surface-lift);border:1px solid var(--border);border-radius:var(--radius);
+  overflow:hidden;cursor:pointer;transition:transform .12s ease,border-color .12s ease;
+  text-align:left;color:inherit;padding:0;
+}
+.product-card:active{transform:scale(.97);border-color:var(--accent)}
+.product-card .item-img{
+  width:100%;height:86px;background:#101010;display:flex;align-items:center;
+  justify-content:center;font-size:36px;border-bottom:1px solid var(--border);
+}
+.product-card .item-info{padding:10px 12px 12px;display:block}
+.product-card .item-name{font-size:14px;font-weight:800;display:block;margin-bottom:3px;line-height:1.25}
+.product-card .item-cat{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:6px}
+.product-card .item-price{font-size:16px;font-weight:800;color:var(--accent);display:block}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:240px;color:var(--muted);text-align:center;gap:10px;font-size:14px}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat-card{background:var(--surface-lift);border:1px solid var(--border);border-radius:var(--radius);padding:14px 8px;text-align:center}
+.stat-value{font-size:20px;font-weight:800;color:var(--accent2);line-height:1.2}
+.stat-label{font-size:11px;color:var(--muted);margin-top:4px}
+.shift-status{background:var(--surface-lift);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center}
+.shift-badge{display:inline-block;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:800;margin-bottom:8px}
+.shift-badge.closed{background:rgba(255,107,107,.15);color:var(--danger)}
+.shift-badge.open{background:rgba(74,222,128,.15);color:var(--success)}
+.shift-status p{color:var(--muted);font-size:13px}
+.pay-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pay-card{background:var(--surface-lift);border:1px solid var(--border);border-radius:14px;padding:12px 8px;text-align:center}
+.pay-card .pay-val{font-size:16px;font-weight:800;color:var(--text)}
+.pay-card .pay-lbl{font-size:11px;color:var(--muted);margin-top:3px}
+.pay-card.cash .pay-val{color:var(--accent2)}
+.pay-card.card .pay-val{color:var(--success)}
+.pay-card.mixed .pay-val{color:var(--accent)}
+.block-title{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:2px}
+.sum-list{background:var(--surface-lift);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.sum-row{display:flex;justify-content:space-between;gap:12px;padding:11px 14px;font-size:13px;border-bottom:1px solid var(--border)}
+.sum-row:last-child{border-bottom:none}
+.sum-row span:first-child{color:var(--text)}
+.sum-row span:last-child{color:var(--muted);white-space:nowrap}
+.sale-card{
+  background:var(--surface-lift);border:1px solid var(--border);border-radius:var(--radius);
+  padding:14px;margin-bottom:10px;display:flex;flex-direction:column;gap:8px;
+}
+.sale-header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.sale-id{font-weight:800;color:var(--accent);font-size:14px}
+.sale-meta{font-size:11px;color:var(--muted);margin-top:3px}
+.sale-items{font-size:13px}
+.sale-items .item-row{display:flex;justify-content:space-between;gap:10px;margin:3px 0}
+.sale-items .item-row span:last-child{color:var(--muted);white-space:nowrap}
+.sale-total{
+  font-weight:800;font-size:15px;margin-top:4px;border-top:1px solid var(--border);
+  padding-top:8px;display:flex;justify-content:space-between;gap:10px;
+}
+.sale-total span:last-child{color:var(--accent2)}
+.payment-badge{
+  display:inline-block;padding:4px 10px;border-radius:12px;font-size:10px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;
+}
+.payment-cash{background:var(--accent2);color:#000}
+.payment-card{background:var(--success);color:#000}
+.payment-mixed{background:var(--accent);color:#000}
+.calc-card{background:var(--surface-lift);border:1px solid var(--border);border-radius:16px;padding:14px;margin:12px 0}
+.calc-title{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:10px}
+.calc-row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:8px 0;font-size:15px}
+.calc-label{color:var(--muted);font-weight:700;flex:0 0 auto}
+.calc-big{font-size:19px;font-weight:800;color:var(--text);text-align:right}
+.calc-big.calc-success{color:var(--success)}
+.calc-input{
+  width:130px;padding:9px 12px;border:2px solid var(--border);border-radius:12px;
+  background:var(--bg);font-size:17px;font-weight:800;text-align:right;
+  font-family:inherit;color:var(--text);outline:none;
+}
+.calc-input:focus{border-color:var(--accent)}
+.form-row{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.form-row label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.form-row input,.form-row select,.form-row textarea{
+  padding:11px 14px;border:1px solid var(--border);border-radius:12px;background:var(--bg);
+  font-size:15px;font-family:inherit;color:var(--text);outline:none;width:100%;
+}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:var(--accent)}
+.form-row textarea{resize:vertical;min-height:60px}
+.btn-primary{
+  background:var(--accent2);color:#000;border:none;padding:13px 20px;
+  border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;
+}
+.btn-primary:active{background:var(--accent)}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.btn-outline{
+  background:transparent;border:1px solid var(--border);color:var(--text);
+  padding:12px 18px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;
+}
+.btn-outline:active{background:var(--border)}
+.cart-panel{
+  position:fixed;bottom:0;left:0;right:0;height:88vh;background:var(--surface);
+  border-top:1px solid var(--border);border-radius:20px 20px 0 0;
+  box-shadow:0 -20px 50px rgba(0,0,0,.6);z-index:200;
+  transform:translateY(105%);transition:transform .25s ease;
+  display:flex;flex-direction:column;
+}
+.cart-panel.open{transform:translateY(0)}
+.cart-header{
+  padding:14px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+}
+.cart-header h3{font-size:17px;font-weight:800;flex:1;text-align:center}
+.cart-items{flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch}
+.cart-item{display:flex;align-items:center;gap:10px;background:var(--surface-lift);border:1px solid var(--border);border-radius:14px;padding:10px}
+.cart-item-img{width:42px;height:42px;background:#101010;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex:0 0 auto}
+.cart-item-info{flex:1;min-width:0}
+.cart-item-name{font-weight:800;font-size:14px;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cart-item-price{font-size:12px;color:var(--muted)}
+.cart-item-qty{display:flex;align-items:center;gap:6px;flex:0 0 auto}
+.qty-btn{
+  width:30px;height:30px;border:1px solid var(--border);background:var(--surface);
+  border-radius:9px;cursor:pointer;font-size:17px;line-height:1;display:flex;
+  align-items:center;justify-content:center;color:var(--text);
+}
+.qty-btn:active{background:var(--border)}
+.qty-value{font-weight:800;font-size:14px;min-width:18px;text-align:center}
+.remove-item{color:var(--danger);background:none;border:none;cursor:pointer;font-size:20px;padding:2px 4px;flex:0 0 auto}
+.cart-footer{
+  padding:14px 16px calc(14px + var(--safe-b));border-top:1px solid var(--border);
+  background:var(--surface);border-radius:20px 20px 0 0;
+}
+.cart-total{display:flex;justify-content:space-between;font-size:18px;font-weight:800;margin-bottom:12px}
+.cart-actions{display:flex;gap:10px}
+.cart-actions button{flex:1}
+.cart-empty{text-align:center;color:var(--muted);padding:36px 10px;font-size:14px}
+.modal{
+  position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);
+  z-index:500;display:none;align-items:center;justify-content:center;padding:16px;
+}
+.modal.open{display:flex}
+.modal-content{
+  width:100%;max-width:440px;background:var(--surface);border:1px solid var(--border);
+  border-radius:20px;padding:20px;max-height:92vh;overflow-y:auto;
+  box-shadow:0 24px 60px rgba(0,0,0,.7);
+}
+.modal-header{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.modal-header h2{font-size:18px;font-weight:800;flex:1;text-align:center}
+.checkout-summary{background:var(--surface-lift);border:1px solid var(--border);border-radius:14px;padding:12px 14px;font-size:13px;margin-bottom:14px}
+.checkout-summary .row{display:flex;justify-content:space-between;gap:10px;margin:4px 0}
+.checkout-summary .row span:last-child{color:var(--muted);white-space:nowrap}
+.checkout-summary .total{display:flex;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:16px;font-weight:800}
+.modal-actions{display:flex;gap:10px;margin-top:16px}
+.modal-actions button{flex:1}
+.toast{
+  position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(120px);
+  background:var(--surface-lift);border:1px solid var(--border);color:var(--text);
+  padding:12px 22px;border-radius:12px;font-size:14px;font-weight:700;z-index:600;
+  transition:transform .25s ease;max-width:88vw;text-align:center;
+  box-shadow:0 12px 30px rgba(0,0,0,.6);
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+@media(max-width:360px){
+  .products-grid{grid-template-columns:1fr}
+  .search-wrap input{width:120px}
+  .stat-value{font-size:17px}
+}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="logo-group">
+    <h1 class="app-title">☕ Coffee POS</h1>
+    <span class="app-version" id="app-version">v1.0.0</span>
+  </div>
+  <button class="icon-btn cart-btn" id="cart-btn" title="Корзина" aria-label="Корзина">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="9" cy="20" r="1.4"></circle>
+      <circle cx="18" cy="20" r="1.4"></circle>
+      <path d="M2 3h2.4l2.2 11.2a2 2 0 0 0 2 1.6h8.6a2 2 0 0 0 2-1.6L21 7H5"></path>
+    </svg>
+    <span class="badge" id="cart-badge">0</span>
+  </button>
+</header>
+
+<nav class="tab-nav">
+  <button class="tab-btn active" data-tab="cassa">Касса</button>
+  <button class="tab-btn" data-tab="shift">Смена</button>
+</nav>
+
+<main class="app-main">
+  <section id="view-cassa" class="view active">
+    <div class="section-header">
+      <h2>Меню</h2>
+      <div class="search-wrap">
+        <input type="text" id="menu-search" placeholder="Поиск..." autocomplete="off" />
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <circle cx="11" cy="11" r="7"></circle>
+          <line x1="20" y1="20" x2="16.2" y2="16.2"></line>
+        </svg>
+      </div>
+    </div>
+    <div class="category-tabs" id="category-tabs"></div>
+    <div class="products-grid" id="products-grid"></div>
+    <div class="empty-state" id="menu-empty" style="display:none">Товаров не найдено</div>
+  </section>
+
+  <section id="view-shift" class="view">
+    <div class="section-header">
+      <h2>Отчёт за смену</h2>
+      <button class="btn-primary" id="shift-toggle">Открыть смену</button>
+    </div>
+
+    <div class="shift-status" id="shift-status">
+      <div class="shift-badge closed" id="shift-badge">Смена закрыта</div>
+      <p id="shift-status-text">Откройте смену, чтобы начать учёт продаж</p>
+    </div>
+
+    <div class="stats-row" id="shift-stats" style="display:none">
+      <div class="stat-card">
+        <div class="stat-value" id="shift-total">0 Br</div>
+        <div class="stat-label">Выручка</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="shift-count">0</div>
+        <div class="stat-label">Чеков</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="shift-items">0</div>
+        <div class="stat-label">Позиций</div>
+      </div>
+    </div>
+
+    <div id="shift-payments-wrap" style="display:none">
+      <div class="block-title" style="margin-bottom:8px">По способу оплаты</div>
+      <div class="pay-grid">
+        <div class="pay-card cash"><div class="pay-val" id="pay-cash">0 Br</div><div class="pay-lbl">Наличные</div></div>
+        <div class="pay-card card"><div class="pay-val" id="pay-card">0 Br</div><div class="pay-lbl">Карта</div></div>
+        <div class="pay-card mixed"><div class="pay-val" id="pay-mixed">0 Br</div><div class="pay-lbl">Смешанный</div></div>
+      </div>
+    </div>
+
+    <div id="shift-summary-wrap" style="display:none">
+      <div class="block-title" style="margin-bottom:8px">Продано по позициям</div>
+      <div class="sum-list" id="shift-summary"></div>
+    </div>
+
+    <div id="shift-receipts-wrap" style="display:none">
+      <div class="block-title" style="margin-bottom:8px">Чеки</div>
+      <div id="shift-sales-list"></div>
+    </div>
+  </section>
+</main>
+
+<aside class="cart-panel" id="cart-panel">
+  <div class="cart-header">
+    <button class="icon-btn" id="cart-back" title="Назад" aria-label="Назад">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+    </button>
+    <h3>Корзина</h3>
+    <button class="icon-btn" id="cart-close" title="Закрыть" aria-label="Закрыть">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  </div>
+  <div class="cart-items" id="cart-items"></div>
+  <div class="cart-footer">
+    <div class="cart-total"><span>Итого:</span><span id="cart-total">0 Br</span></div>
+    <div class="cart-actions">
+      <button class="btn-outline" id="cart-clear">Очистить</button>
+      <button class="btn-primary" id="cart-checkout">Оплатить</button>
+    </div>
+  </div>
+</aside>
+
+<div class="modal" id="checkout-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <button class="icon-btn" id="checkout-back" title="Назад" aria-label="Назад">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+      </button>
+      <h2>Оплата</h2>
+      <span style="width:42px"></span>
+    </div>
+
+    <div class="checkout-summary" id="checkout-summary"></div>
+
+    <div class="form-row">
+      <label for="checkout-payment">Способ оплаты</label>
+      <select id="checkout-payment">
+        <option value="cash">Наличные</option>
+        <option value="card">Карта</option>
+        <option value="mixed">Смешанный (наличные + карта)</option>
+      </select>
+    </div>
+
+    <div class="calc-card" id="cash-row">
+      <div class="calc-title">Калькулятор сдачи</div>
+      <div class="calc-row">
+        <span class="calc-label">К оплате</span>
+        <span class="calc-big" id="calc-total">0 Br</span>
+      </div>
+      <div class="calc-row">
+        <span class="calc-label">Наличными</span>
+        <input type="number" inputmode="numeric" id="checkout-cash" class="calc-input" placeholder="0" />
+      </div>
+      <div class="calc-row" id="card-pay-row" style="display:none">
+        <span class="calc-label">Картой</span>
+        <input type="number" inputmode="numeric" id="checkout-card" class="calc-input" placeholder="0" />
+      </div>
+      <div class="calc-row">
+        <span class="calc-label">Сдача</span>
+        <span class="calc-big calc-success" id="calc-change">0 Br</span>
+      </div>
+    </div>
+
+    <div class="modal-actions" style="margin-top:20px">
+      <button class="btn-outline" id="checkout-cancel">Отмена</button>
+      <button class="btn-primary" id="checkout-confirm">Продать</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Готово</div>
+
+<script>
+var STORAGE_KEY = 'coffee_pos_data';
+var APP_VERSION = '1.0.0';
+
+var state = {
+  products: [],
+  cart: [],
+  sales: [],
+  shift: { open: false, openedAt: null, id: null },
+  activeCategory: 'all'
+};
+
+var DEMO_PRODUCTS = [
+  { id: 'p1',  name: 'Эспрессо',      category: 'coffee',  price: 150, desc: 'Крепкий кофе 30 мл',        emoji: '☕' },
+  { id: 'p2',  name: 'Американо',     category: 'coffee',  price: 180, desc: 'Эспрессо с водой 180 мл',   emoji: '☕' },
+  { id: 'p3',  name: 'Капучино',      category: 'coffee',  price: 220, desc: 'Кофе с молочной пеной',     emoji: '☕' },
+  { id: 'p4',  name: 'Латте',         category: 'coffee',  price: 240, desc: 'Кофе с молоком 250 мл',     emoji: '☕' },
+  { id: 'p5',  name: 'Раф',           category: 'coffee',  price: 260, desc: 'Кофе со сливками 180 мл',   emoji: '☕' },
+  { id: 'p6',  name: 'Флэт уайт',     category: 'coffee',  price: 250, desc: 'Двойной эспрессо с молоком', emoji: '☕' },
+  { id: 'p7',  name: 'Чизкейк',       category: 'dessert', price: 320, desc: 'С ягодным соусом',          emoji: '🍰' },
+  { id: 'p8',  name: 'Тирамису',      category: 'dessert', price: 290, desc: 'Классический десерт',       emoji: '🍰' },
+  { id: 'p9',  name: 'Брауни',        category: 'dessert', price: 240, desc: 'Шоколадный, с орехами',     emoji: '🍪' },
+  { id: 'p10', name: 'Круассан',      category: 'dessert', price: 190, desc: 'С миндалём',                emoji: '🥐' },
+  { id: 'p11', name: 'Чёрный чай',    category: 'tea',     price: 120, desc: '350 мл',                    emoji: '🍵' },
+  { id: 'p12', name: 'Зелёный чай',   category: 'tea',     price: 130, desc: '350 мл',                    emoji: '🍵' }
+];
+
+var CATEGORY_LABELS = { all: 'Все', coffee: 'Кофе', dessert: 'Десерты', tea: 'Чай' };
+var PAYMENT_LABELS = { cash: 'Наличные', card: 'Карта', mixed: 'Смешанный' };
+
+function $(id) { return document.getElementById(id); }
+
+function formatMoney(value) {
+  return Math.round(value).toLocaleString('ru-RU') + ' Br';
+}
+
+function formatTime(ts) {
+  return new Date(ts).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+}
+
+function escapeHtml(text) {
+  var div = document.createElement('div');
+  div.textContent = String(text == null ? '' : text);
+  return div.innerHTML;
+}
+
+function categoryLabel(cat) {
+  return CATEGORY_LABELS[cat] || cat;
+}
+
+function loadStoredData() {
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    var data = JSON.parse(raw);
+    if (Array.isArray(data.products) && data.products.length) state.products = data.products;
+    if (Array.isArray(data.sales)) state.sales = data.sales;
+    if (data.shift && typeof data.shift === 'object') {
+      state.shift = {
+        open: !!data.shift.open,
+        openedAt: data.shift.openedAt || null,
+        id: data.shift.id || null
+      };
+    }
+  } catch (err) {
+    console.warn('Не удалось прочитать сохранённые данные', err);
+  }
+}
+
+function saveData() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      products: state.products,
+      sales: state.sales,
+      shift: state.shift
+    }));
+  } catch (err) {
+    console.warn('Не удалось сохранить данные', err);
+  }
+}
+
+function init() {
+  loadStoredData();
+  if (!state.products.length) {
+    state.products = DEMO_PRODUCTS.slice();
+    saveData();
+  }
+  var versionEl = $('app-version');
+  if (versionEl) versionEl.textContent = 'v' + APP_VERSION;
+  renderCategories();
+  renderProducts();
+  renderCart();
+  renderShift();
+  setupListeners();
+}
+
+function setupListeners() {
+  var tabs = document.querySelectorAll('.tab-btn');
+  for (var i = 0; i < tabs.length; i++) {
+    tabs[i].addEventListener('click', function () {
+      switchTab(this.getAttribute('data-tab'));
+    });
+  }
+
+  $('menu-search').addEventListener('input', renderProducts);
+
+  $('cart-btn').onclick = openCart;
+  $('cart-back').onclick = closeCart;
+  $('cart-close').onclick = closeCart;
+  $('cart-clear').onclick = clearCart;
+  $('cart-checkout').onclick = openCheckout;
+
+  $('checkout-back').onclick = closeCheckout;
+  $('checkout-cancel').onclick = closeCheckout;
+  $('checkout-confirm').onclick = confirmCheckout;
+  $('checkout-modal').addEventListener('click', function (e) {
+    if (e.target === this) closeCheckout();
+  });
+
+  $('checkout-payment').addEventListener('change', onPaymentChange);
+  $('checkout-cash').addEventListener('input', calcChange);
+  $('checkout-card').addEventListener('input', calcChange);
+  $('checkout-cash').addEventListener('focus', function () { this.select(); });
+
+  $('shift-toggle').addEventListener('click', toggleShift);
+}
+
+function switchTab(tab) {
+  var tabs = document.querySelectorAll('.tab-btn');
+  for (var i = 0; i < tabs.length; i++) {
+    tabs[i].classList.toggle('active', tabs[i].getAttribute('data-tab') === tab);
+  }
+  var views = document.querySelectorAll('.view');
+  for (var j = 0; j < views.length; j++) views[j].classList.remove('active');
+  var view = $('view-' + tab);
+  if (view) view.classList.add('active');
+  if (tab === 'shift') renderShift();
+}
+
+function renderCategories() {
+  var cats = ['all'];
+  var seen = {};
+  for (var i = 0; i < state.products.length; i++) {
+    var cat = state.products[i].category;
+    if (cat && !seen[cat]) { seen[cat] = true; cats.push(cat); }
+  }
+  var html = '';
+  for (var k = 0; k < cats.length; k++) {
+    var c = cats[k];
+    var active = state.activeCategory === c ? ' active' : '';
+    html += '<button type="button" class="category-btn' + active + '" data-cat="' + escapeHtml(c) + '">' +
+      escapeHtml(categoryLabel(c)) + '</button>';
+  }
+  $('category-tabs').innerHTML = html;
+
+  var buttons = document.querySelectorAll('#category-tabs .category-btn');
+  for (var b = 0; b < buttons.length; b++) {
+    buttons[b].addEventListener('click', function () {
+      state.activeCategory = this.getAttribute('data-cat');
+      renderCategories();
+      renderProducts();
+    });
+  }
+}
+
+function renderProducts() {
+  var search = ($('menu-search').value || '').toLowerCase().trim();
+  var grid = $('products-grid');
+  var visible = [];
+
+  for (var i = 0; i < state.products.length; i++) {
+    var p = state.products[i];
+    var matchCat = state.activeCategory === 'all' || p.category === state.activeCategory;
+    var haystack = (p.name + ' ' + (p.desc || '')).toLowerCase();
+    if (matchCat && (search === '' || haystack.indexOf(search) >= 0)) visible.push(p);
+  }
+
+  if (!visible.length) {
+    grid.innerHTML = '';
+    grid.style.display = 'none';
+    $('menu-empty').style.display = 'flex';
+    return;
+  }
+
+  grid.style.display = 'grid';
+  $('menu-empty').style.display = 'none';
+
+  var out = '';
+  for (var j = 0; j < visible.length; j++) {
+    var item = visible[j];
+    out += '<button type="button" class="product-card" data-id="' + escapeHtml(item.id) + '">' +
+      '<div class="item-img">' + (item.emoji || '☕') + '</div>' +
+      '<div class="item-info">' +
+        '<span class="item-name">' + escapeHtml(item.name) + '</span>' +
+        '<span class="item-cat">' + escapeHtml(categoryLabel(item.category)) + '</span>' +
+        '<span class="item-price">' + formatMoney(item.price) + '</span>' +
+      '</div>' +
+    '</button>';
+  }
+  grid.innerHTML = out;
+
+  var cards = grid.querySelectorAll('.product-card');
+  for (var c = 0; c < cards.length; c++) {
+    cards[c].addEventListener('click', function () {
+      addToCart(this.getAttribute('data-id'));
+    });
+  }
+}
+
+function addToCart(productId) {
+  var product = null;
+  for (var i = 0; i < state.products.length; i++) {
+    if (state.products[i].id === productId) { product = state.products[i]; break; }
+  }
+  if (!product) return;
+
+  var existing = null;
+  for (var j = 0; j < state.cart.length; j++) {
+    if (state.cart[j].id === productId) { existing = state.cart[j]; break; }
+  }
+
+  if (existing) {
+    existing.qty += 1;
+  } else {
+    state.cart.push({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      emoji: product.emoji || '☕',
+      qty: 1
+    });
+  }
+  renderCart();
+  showToast(product.name + ' добавлен');
+}
+
+function removeFromCart(productId) {
+  var next = [];
+  for (var i = 0; i < state.cart.length; i++) {
+    if (state.cart[i].id !== productId) next.push(state.cart[i]);
+  }
+  state.cart = next;
+  renderCart();
+}
+
+function changeQty(productId, delta) {
+  var item = null;
+  for (var i = 0; i < state.cart.length; i++) {
+    if (state.cart[i].id === productId) { item = state.cart[i]; break; }
+  }
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty <= 0) {
+    removeFromCart(productId);
+  } else {
+    renderCart();
+  }
+}
+
+function clearCart() {
+  if (!state.cart.length) return;
+  state.cart = [];
+  renderCart();
+  showToast('Корзина очищена');
+}
+
+function cartTotal() {
+  var total = 0;
+  for (var i = 0; i < state.cart.length; i++) {
+    total += state.cart[i].price * state.cart[i].qty;
+  }
+  return total;
+}
+
+function renderCart() {
+  var count = 0;
+  for (var i = 0; i < state.cart.length; i++) count += state.cart[i].qty;
+
+  var badge = $('cart-badge');
+  badge.textContent = count;
+  badge.style.display = count > 0 ? 'flex' : 'none';
+
+  var wrap = $('cart-items');
+  var total = cartTotal();
+  $('cart-total').textContent = formatMoney(total);
+  $('cart-checkout').disabled = state.cart.length === 0;
+
+  if (!state.cart.length) {
+    wrap.innerHTML = '<div class="cart-empty">Корзина пуста<br>Выберите товар в меню</div>';
+    return;
+  }
+
+  var html = '';
+  for (var j = 0; j < state.cart.length; j++) {
+    var it = state.cart[j];
+    html += '<div class="cart-item">' +
+      '<div class="cart-item-img">' + (it.emoji || '☕') + '</div>' +
+      '<div class="cart-item-info">' +
+        '<div class="cart-item-name">' + escapeHtml(it.name) + '</div>' +
+        '<div class="cart-item-price">' + formatMoney(it.price) + ' × ' + it.qty + ' = ' + formatMoney(it.price * it.qty) + '</div>' +
+      '</div>' +
+      '<div class="cart-item-qty">' +
+        '<button type="button" class="qty-btn" data-act="minus">−</button>' +
+        '<span class="qty-value">' + it.qty + '</span>' +
+        '<button type="button" class="qty-btn" data-act="plus">+</button>' +
+      '</div>' +
+      '<button type="button" class="remove-item" data-act="remove">×</button>' +
+    '</div>';
+  }
+  wrap.innerHTML = html;
+
+  var rows = wrap.querySelectorAll('.cart-item');
+  for (var r = 0; r < rows.length; r++) {
+    var row = rows[r];
+    var id = state.cart[r].id;
+    row.querySelector('[data-act="minus"]').addEventListener('click', makeQtyHandler(id, -1));
+    row.querySelector('[data-act="plus"]').addEventListener('click', makeQtyHandler(id, 1));
+    row.querySelector('[data-act="remove"]').addEventListener('click', makeRemoveHandler(id));
+  }
+}
+
+function makeQtyHandler(id, delta) {
+  return function () { changeQty(id, delta); };
+}
+
+function makeRemoveHandler(id) {
+  return function () { removeFromCart(id); };
+}
+
+function openCart() {
+  renderCart();
+  $('cart-panel').classList.add('open');
+}
+
+function closeCart() {
+  $('cart-panel').classList.remove('open');
+}
+
+function openCheckout() {
+  if (!state.cart.length) { showToast('Корзина пуста'); return; }
+
+  var total = cartTotal();
+  renderCheckoutSummary(total);
+
+  $('checkout-payment').value = 'cash';
+  $('checkout-cash').value = total;
+  $('checkout-card').value = '';
+
+  closeCart();
+  $('checkout-modal').classList.add('open');
+  onPaymentChange();
+}
+
+function closeCheckout() {
+  $('checkout-modal').classList.remove('open');
+}
+
+function renderCheckoutSummary(total) {
+  var html = '';
+  for (var i = 0; i < state.cart.length; i++) {
+    var it = state.cart[i];
+    html += '<div class="row"><span>' + escapeHtml(it.name) + ' × ' + it.qty + '</span>' +
+      '<span>' + formatMoney(it.price * it.qty) + '</span></div>';
+  }
+  html += '<div class="total"><span>Итого</span><span>' + formatMoney(total) + '</span></div>';
+  $('checkout-summary').innerHTML = html;
+  $('calc-total').textContent = formatMoney(total);
+}
+
+function onPaymentChange() {
+  var payment = $('checkout-payment').value;
+  var total = cartTotal();
+  var cashRow = $('cash-row');
+  var cardRow = $('card-pay-row');
+
+  if (payment === 'card') {
+    cashRow.style.display = 'none';
+    cardRow.style.display = 'none';
+    $('checkout-card').value = '';
+    $('checkout-cash').value = '';
+  } else if (payment === 'mixed') {
+    cashRow.style.display = 'block';
+    cardRow.style.display = 'flex';
+    if (!$('checkout-cash').value) $('checkout-cash').value = '';
+    if (!$('checkout-card').value) $('checkout-card').value = '';
+  } else {
+    cashRow.style.display = 'block';
+    cardRow.style.display = 'none';
+    $('checkout-card').value = '';
+    if (!$('checkout-cash').value) $('checkout-cash').value = total;
+  }
+  calcChange();
+}
+
+function calcChange() {
+  var total = cartTotal();
+  var payment = $('checkout-payment').value;
+  var cash = parseFloat($('checkout-cash').value) || 0;
+  var card = parseFloat($('checkout-card').value) || 0;
+  var paid = 0;
+
+  if (payment === 'cash') paid = cash;
+  else if (payment === 'card') paid = total;
+  else paid = cash + card;
+
+  var changeEl = $('calc-change');
+  var diff = paid - total;
+
+  if (diff < 0) {
+    changeEl.style.color = 'var(--danger)';
+    changeEl.textContent = 'Не хватает ' + formatMoney(Math.abs(diff));
+  } else {
+    changeEl.style.color = 'var(--success)';
+    changeEl.textContent = formatMoney(diff);
+  }
+}
+
+function confirmCheckout() {
+  if (!state.cart.length) { showToast('Корзина пуста'); return; }
+
+  var total = cartTotal();
+  var payment = $('checkout-payment').value;
+  var cash = parseFloat($('checkout-cash').value) || 0;
+  var card = parseFloat($('checkout-card').value) || 0;
+
+  var cashPart = 0;
+  var cardPart = 0;
+
+  if (payment === 'cash') {
+    if (cash < total) { showToast('Недостаточно наличных'); return; }
+    cashPart = total;
+  } else if (payment === 'card') {
+    cardPart = total;
+  } else {
+    if (cash + card < total) { showToast('Наличные + карта меньше суммы'); return; }
+    if (cash > total) { cash = total; card = 0; }
+    cashPart = cash;
+    cardPart = total - cash;
+  }
+
+  var paidTotal = payment === 'cash' ? cash : (payment === 'card' ? total : cash + card);
+  var change = Math.max(0, paidTotal - total);
+
+  if (!state.shift.open) {
+    state.shift = { open: true, openedAt: Date.now(), id: 'shift_' + Date.now() };
+  }
+
+  var sale = {
+    id: Date.now().toString().slice(-6),
+    payment: payment,
+    items: state.cart.slice(),
+    total: total,
+    time: Date.now(),
+    shiftId: state.shift.id || null,
+    cash: cashPart,
+    card: cardPart,
+    change: change
+  };
+
+  state.sales.push(sale);
+  state.cart = [];
+
+  saveData();
+  renderCart();
+  renderShift();
+  closeCheckout();
+  showToast('Продажа #' + sale.id + ' — ' + formatMoney(total));
+}
+
+function toggleShift() {
+  if (!state.shift.open) {
+    state.shift = { open: true, openedAt: Date.now(), id: 'shift_' + Date.now() };
+    saveData();
+    renderShift();
+    showToast('Смена открыта');
+    switchTab('shift');
+    return;
+  }
+  var ok = window.confirm('Закрыть смену и сохранить отчёт?');
+  if (!ok) return;
+  state.shift.open = false;
+  saveData();
+  renderShift();
+  showToast('Смена закрыта');
+}
+
+function shiftSales() {
+  var out = [];
+  if (!state.shift.id) return out;
+  for (var i = 0; i < state.sales.length; i++) {
+    if (state.sales[i].shiftId === state.shift.id) out.push(state.sales[i]);
+  }
+  return out;
+}
+
+function renderShift() {
+  var isOpen = !!state.shift.open;
+  var toggle = $('shift-toggle');
+  toggle.textContent = isOpen ? 'Закрыть смену' : 'Открыть смену';
+  toggle.className = isOpen ? 'btn-outline' : 'btn-primary';
+
+  var badge = $('shift-badge');
+  badge.className = 'shift-badge ' + (isOpen ? 'open' : 'closed');
+  badge.textContent = isOpen ? 'Смена открыта' : 'Смена закрыта';
+
+  var statusText = $('shift-status-text');
+  if (isOpen) {
+    statusText.textContent = 'Начало: ' + formatTime(state.shift.openedAt);
+    statusText.style.color = 'var(--success)';
+  } else {
+    statusText.textContent = state.shift.id
+      ? 'Отчёт за последнюю смену сохранён'
+      : 'Откройте смену, чтобы начать учёт продаж';
+    statusText.style.color = 'var(--muted)';
+  }
+
+  var sales = shiftSales();
+  var hasData = sales.length > 0 || isOpen;
+
+  $('shift-stats').style.display = hasData ? 'grid' : 'none';
+  $('shift-payments-wrap').style.display = sales.length ? 'block' : 'none';
+  $('shift-summary-wrap').style.display = sales.length ? 'block' : 'none';
+  $('shift-receipts-wrap').style.display = sales.length ? 'block' : 'none';
+
+  var total = 0;
+  var itemsCount = 0;
+  var cashTotal = 0;
+  var cardTotal = 0;
+  var mixedTotal = 0;
+  var summary = {};
+
+  for (var i = 0; i < sales.length; i++) {
+    var sale = sales[i];
+    total += sale.total;
+    if (sale.payment === 'cash') cashTotal += sale.total;
+    else if (sale.payment === 'card') cardTotal += sale.total;
+    else { mixedTotal += sale.total; cashTotal += sale.cash || 0; cardTotal += sale.card || 0; }
+
+    for (var j = 0; j < sale.items.length; j++) {
+      var item = sale.items[j];
+      itemsCount += item.qty;
+      if (!summary[item.name]) summary[item.name] = { qty: 0, sum: 0 };
+      summary[item.name].qty += item.qty;
+      summary[item.name].sum += item.price * item.qty;
+    }
+  }
+
+  $('shift-total').textContent = formatMoney(total);
+  $('shift-count').textContent = sales.length;
+  $('shift-items').textContent = itemsCount;
+  $('pay-cash').textContent = formatMoney(cashTotal);
+  $('pay-card').textContent = formatMoney(cardTotal);
+  $('pay-mixed').textContent = formatMoney(mixedTotal);
+
+  var names = Object.keys(summary).sort(function (a, b) { return summary[b].sum - summary[a].sum; });
+  var summaryHtml = '';
+  for (var n = 0; n < names.length; n++) {
+    var row = summary[names[n]];
+    summaryHtml += '<div class="sum-row"><span>' + escapeHtml(names[n]) + ' × ' + row.qty + '</span>' +
+      '<span>' + formatMoney(row.sum) + '</span></div>';
+  }
+  $('shift-summary').innerHTML = summaryHtml;
+
+  var listHtml = '';
+  for (var k = sales.length - 1; k >= 0; k--) {
+    var s = sales[k];
+    var itemsHtml = '';
+    for (var m = 0; m < s.items.length; m++) {
+      var si = s.items[m];
+      itemsHtml += '<div class="item-row"><span>' + escapeHtml(si.name) + ' × ' + si.qty + '</span>' +
+        '<span>' + formatMoney(si.price * si.qty) + '</span></div>';
+    }
+
+    var extra = '';
+    if (s.payment === 'mixed') {
+      extra = '<div class="sale-meta">Наличными ' + formatMoney(s.cash) + ' · Картой ' + formatMoney(s.card) + '</div>';
+    } else if (s.payment === 'cash' && s.change) {
+      extra = '<div class="sale-meta">Сдача ' + formatMoney(s.change) + '</div>';
+    }
+
+    listHtml += '<div class="sale-card">' +
+      '<div class="sale-header">' +
+        '<div>' +
+          '<div class="sale-id">Чек #' + escapeHtml(s.id) + '</div>' +
+          '<div class="sale-meta">' + formatTime(s.time) + '</div>' +
+        '</div>' +
+        '<span class="payment-badge payment-' + escapeHtml(s.payment) + '">' + escapeHtml(PAYMENT_LABELS[s.payment] || s.payment) + '</span>' +
+      '</div>' +
+      '<div class="sale-items">' + itemsHtml + '</div>' +
+      extra +
+      '<div class="sale-total"><span>Итого</span><span>' + formatMoney(s.total) + '</span></div>' +
+    '</div>';
+  }
+  $('shift-sales-list').innerHTML = listHtml;
+}
+
+function showToast(message) {
+  var toast = $('toast');
+  toast.textContent = message;
+  toast.classList.add('show');
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(function () {
+    toast.classList.remove('show');
+  }, 2200);
+}
+
+init();
+
+if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('./sw.js').catch(function () {});
+  });
+}
+</script>
+</body>
+</html>
