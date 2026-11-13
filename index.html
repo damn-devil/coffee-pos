@@ -311,45 +311,6 @@ button{font-family:inherit;user-select:none;-webkit-user-select:none}
 .steps b{color:var(--text)}
 .steps a{color:var(--accent)}
 
-/* ---------- отчёт для печати / PDF ---------- */
-#print-report{display:none}
-
-@media print{
-  @page{size:A4;margin:12mm}
-  html,body{height:auto;width:auto;overflow:visible;background:#fff;color:#000}
-  .app-header,.tab-nav,.app-main,.cart-panel,.modal,.toast{display:none !important}
-  #print-report{
-    display:block;color:#000;background:#fff;
-    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-    font-size:12px;line-height:1.4;
-  }
-  .pr-brand{font-size:15px;font-weight:800;letter-spacing:.3px}
-  .pr-title{font-size:22px;font-weight:800;margin-top:2px}
-  .pr-sub{font-size:11px;color:#555;margin-bottom:14px}
-  .pr-grid{display:flex;gap:10px;margin:0 0 14px}
-  .pr-card{flex:1;border:1px solid #bbb;border-radius:6px;padding:8px 6px;text-align:center}
-  .pr-card b{display:block;font-size:16px}
-  .pr-card span{font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.4px}
-  .pr-h{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#555;margin:16px 0 6px}
-  table.pr-table{width:100%;border-collapse:collapse;font-size:11px}
-  table.pr-table th{
-    text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.4px;
-    color:#555;border-bottom:1px solid #888;padding:5px 4px;
-  }
-  table.pr-table td{border-bottom:1px solid #ddd;padding:5px 4px;vertical-align:top}
-  .pr-right{text-align:right;white-space:nowrap}
-  .pr-check{border:1px solid #ccc;border-radius:6px;padding:8px 10px;margin-bottom:8px;break-inside:avoid}
-  .pr-check-top{display:flex;justify-content:space-between;font-weight:800;font-size:11px;margin-bottom:4px}
-  .pr-check-row{display:flex;justify-content:space-between;gap:10px;font-size:11px;padding:1px 0}
-  .pr-check-total{
-    display:flex;justify-content:space-between;gap:10px;font-weight:800;font-size:11px;
-    border-top:1px solid #ddd;margin-top:5px;padding-top:4px;
-  }
-  .pr-foot{
-    margin-top:18px;border-top:1px solid #bbb;padding-top:8px;
-    font-size:10px;color:#666;display:flex;justify-content:space-between;gap:10px;
-  }
-}
 </style>
 </head>
 <body>
@@ -357,7 +318,7 @@ button{font-family:inherit;user-select:none;-webkit-user-select:none}
 <header class="app-header">
   <div class="logo-group">
     <h1 class="app-title">☕ Coffee POS</h1>
-    <span class="app-version" id="app-version">v1.3.0</span>
+    <span class="app-version" id="app-version">v1.4.0</span>
   </div>
   <div class="header-actions">
     <button class="icon-btn" id="editor-btn" title="Редактировать меню" aria-label="Редактировать меню">
@@ -605,8 +566,6 @@ button{font-family:inherit;user-select:none;-webkit-user-select:none}
   </div>
 </div>
 
-<div id="print-report"></div>
-
 <div class="toast" id="toast">Готово</div>
 
 <script>
@@ -614,7 +573,7 @@ var STORAGE_KEY = 'coffee_pos_data';
 var MENU_CACHE_KEY = 'coffee_pos_menu';
 var MENU_DIRTY_KEY = 'coffee_pos_menu_dirty';
 var GH_KEY = 'coffee_pos_github';
-var APP_VERSION = '1.3.0';
+var APP_VERSION = '1.4.0';
 var MENU_FILE = 'menu.json';
 
 var state = {
@@ -867,7 +826,7 @@ function setupListeners() {
   $('sync-push').addEventListener('click', function () { syncPush(); });
 
   $('shift-toggle').addEventListener('click', toggleShift);
-  $('shift-pdf').addEventListener('click', printShiftReport);
+  $('shift-pdf').addEventListener('click', saveShiftPdf);
   $('shift-modal').addEventListener('click', function (e) {
     if (e.target === this) closeShiftModal();
   });
@@ -1256,11 +1215,11 @@ function showShiftSavedModal() {
   if (t.count > 0) {
     $('shift-modal-actions').innerHTML =
       '<button class="btn-outline" id="shift-modal-later">Позже</button>' +
-      '<button class="btn-primary" id="shift-modal-pdf">Сохранить PDF</button>';
+      '<button class="btn-primary" id="shift-modal-pdf">Скачать PDF</button>';
     $('shift-modal-later').onclick = closeShiftModal;
     $('shift-modal-pdf').onclick = function () {
       closeShiftModal();
-      printShiftReport();
+      saveShiftPdf();
     };
   } else {
     $('shift-modal-actions').innerHTML =
@@ -1329,105 +1288,325 @@ function shiftReportName() {
   return 'Смена ' + day + '.' + month + '.' + stamp.getFullYear();
 }
 
-function buildPrintReport() {
-  var box = $('print-report');
-  var sales = shiftSales();
+var PDF_PAGE_W = 595;
+var PDF_PAGE_H = 842;
+var PDF_MARGIN = 40;
+var PDF_SCALE = 2;
+var PDF_FONT = '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif';
 
-  if (!state.shift.id || !sales.length) {
-    box.innerHTML = '';
-    return false;
+/* Собирает PDF из страниц-картинок (canvas), без окна печати и внешних библиотек */
+function pagesToPdf(canvases) {
+  var images = [];
+  for (var i = 0; i < canvases.length; i++) {
+    var dataUrl = canvases[i].toDataURL('image/jpeg', 0.92);
+    var base64 = dataUrl.split(',')[1];
+    var binary = atob(base64);
+    var bytes = new Uint8Array(binary.length);
+    for (var j = 0; j < binary.length; j++) bytes[j] = binary.charCodeAt(j);
+    images.push({ bytes: bytes, width: canvases[i].width, height: canvases[i].height });
   }
 
-  var t = shiftTotals();
+  var chunks = [];
+  var offset = 0;
+  var offsets = [];
+
+  function pushBytes(bytes) {
+    chunks.push(bytes);
+    offset += bytes.length;
+  }
+
+  function pushStr(text) {
+    pushBytes(new TextEncoder().encode(text));
+  }
+
+  function beginObject() {
+    offsets.push(offset);
+  }
+
+  var pageCount = images.length;
+  var kids = [];
+  for (var k = 0; k < pageCount; k++) kids.push((3 + k * 3) + ' 0 R');
+
+  pushStr('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');
+
+  beginObject();
+  pushStr('1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n');
+
+  beginObject();
+  pushStr('2 0 obj\n<< /Type /Pages /Kids [' + kids.join(' ') + '] /Count ' + pageCount + ' >>\nendobj\n');
+
+  for (var p = 0; p < pageCount; p++) {
+    var pageId = 3 + p * 3;
+    var contentId = pageId + 1;
+    var imageId = pageId + 2;
+    var image = images[p];
+
+    beginObject();
+    pushStr(pageId + ' 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ' + PDF_PAGE_W + ' ' + PDF_PAGE_H + '] ' +
+      '/Resources << /XObject << /Im0 ' + imageId + ' 0 R >> >> /Contents ' + contentId + ' 0 R >>\nendobj\n');
+
+    var content = 'q\n' + PDF_PAGE_W + ' 0 0 ' + PDF_PAGE_H + ' 0 0 cm\n/Im0 Do\nQ\n';
+    beginObject();
+    pushStr(contentId + ' 0 obj\n<< /Length ' + content.length + ' >>\nstream\n' + content + 'endstream\nendobj\n');
+
+    beginObject();
+    pushStr(imageId + ' 0 obj\n<< /Type /XObject /Subtype /Image /Width ' + image.width + ' /Height ' + image.height +
+      ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ' + image.bytes.length + ' >>\nstream\n');
+    pushBytes(image.bytes);
+    pushStr('\nendstream\nendobj\n');
+  }
+
+  var xrefOffset = offset;
+  var size = 3 + pageCount * 3;
+  var xref = 'xref\n0 ' + size + '\n0000000000 65535 f \n';
+  for (var o = 0; o < offsets.length; o++) {
+    xref += ('0000000000' + offsets[o]).slice(-10) + ' 00000 n \n';
+  }
+  xref += 'trailer\n<< /Size ' + size + ' /Root 1 0 R >>\nstartxref\n' + xrefOffset + '\n%%EOF\n';
+  pushStr(xref);
+
+  var pdf = new Uint8Array(offset);
+  var pos = 0;
+  for (var c = 0; c < chunks.length; c++) {
+    pdf.set(chunks[c], pos);
+    pos += chunks[c].length;
+  }
+
+  return new Blob([pdf], { type: 'application/pdf' });
+}
+
+function buildShiftPdf() {
+  var sales = shiftSales();
+  var totals = shiftTotals();
   var startedAt = state.shift.openedAt || sales[0].time;
   var endedAt = state.shift.closedAt || sales[sales.length - 1].time;
   var endedLabel = state.shift.closedAt ? formatTime(state.shift.closedAt) : 'смена открыта';
+  var contentW = PDF_PAGE_W - PDF_MARGIN * 2;
+  var bottomLimit = PDF_PAGE_H - PDF_MARGIN - 20;
 
-  var summaryRows = '';
-  for (var i = 0; i < t.summary.length; i++) {
-    var row = t.summary[i];
-    summaryRows += '<tr><td>' + escapeHtml(row.name) + '</td>' +
-      '<td class="pr-right">' + row.qty + '</td>' +
-      '<td class="pr-right">' + formatMoney(row.sum) + '</td></tr>';
+  var pages = [];
+  var ctx = null;
+  var y = 0;
+
+  function newPage() {
+    var canvas = document.createElement('canvas');
+    canvas.width = PDF_PAGE_W * PDF_SCALE;
+    canvas.height = PDF_PAGE_H * PDF_SCALE;
+    var c = canvas.getContext('2d');
+    c.scale(PDF_SCALE, PDF_SCALE);
+    c.fillStyle = '#ffffff';
+    c.fillRect(0, 0, PDF_PAGE_W, PDF_PAGE_H);
+    c.textBaseline = 'alphabetic';
+    pages.push(canvas);
+    ctx = c;
+    y = PDF_MARGIN;
   }
 
-  var checks = '';
-  for (var k = 0; k < sales.length; k++) {
-    var s = sales[k];
-    var itemsHtml = '';
-    for (var m = 0; m < s.items.length; m++) {
-      var si = s.items[m];
-      itemsHtml += '<div class="pr-check-row"><span>' + escapeHtml(si.name) + ' × ' + si.qty + '</span>' +
-        '<span>' + formatMoney(si.price * si.qty) + '</span></div>';
-    }
-
-    var payLabel = PAYMENT_LABELS[s.payment] || s.payment;
-    if (s.payment === 'mixed') {
-      payLabel += ' · нал. ' + formatMoney(s.cash) + ' / карта ' + formatMoney(s.card);
-    }
-    var changeHtml = s.change ? 'Сдача ' + formatMoney(s.change) : '';
-
-    checks += '<div class="pr-check">' +
-      '<div class="pr-check-top"><span>Чек #' + escapeHtml(s.id) + '</span><span>' + formatTime(s.time) + '</span></div>' +
-      itemsHtml +
-      '<div class="pr-check-row" style="color:#555"><span>' + escapeHtml(payLabel) + '</span><span>' + changeHtml + '</span></div>' +
-      '<div class="pr-check-total"><span>Итого</span><span>' + formatMoney(s.total) + '</span></div>' +
-    '</div>';
+  function setFont(size, bold) {
+    ctx.font = (bold ? '700 ' : '400 ') + size + 'px ' + PDF_FONT;
   }
 
-  box.innerHTML =
-    '<div class="pr-brand">☕ Coffee POS</div>' +
-    '<div class="pr-title">Отчёт за смену</div>' +
-    '<div class="pr-sub">' + formatDate(startedAt) + ' · ' + formatTime(startedAt) + ' — ' + endedLabel + '</div>' +
+  function measure(text) {
+    return ctx.measureText(String(text)).width;
+  }
 
-    '<div class="pr-grid">' +
-      '<div class="pr-card"><b>' + formatMoney(t.total) + '</b><span>Выручка</span></div>' +
-      '<div class="pr-card"><b>' + t.count + '</b><span>Чеков</span></div>' +
-      '<div class="pr-card"><b>' + t.items + '</b><span>Позиций</span></div>' +
-    '</div>' +
+  function fit(text, maxWidth) {
+    text = String(text);
+    if (measure(text) <= maxWidth) return text;
+    var cut = text;
+    while (cut.length > 1 && measure(cut + '…') > maxWidth) cut = cut.slice(0, -1);
+    return cut + '…';
+  }
 
-    '<div class="pr-h">По способу оплаты</div>' +
-    '<table class="pr-table">' +
-      '<tr><td>Наличные</td><td class="pr-right">' + formatMoney(t.cash) + '</td></tr>' +
-      '<tr><td>Карта</td><td class="pr-right">' + formatMoney(t.card) + '</td></tr>' +
-      '<tr><td>Смешанный</td><td class="pr-right">' + formatMoney(t.mixed) + '</td></tr>' +
-    '</table>' +
+  function txt(text, x, yy, size, bold, color, align) {
+    setFont(size, bold);
+    ctx.fillStyle = color || '#000000';
+    ctx.textAlign = align || 'left';
+    ctx.fillText(String(text), x, yy);
+    ctx.textAlign = 'left';
+  }
 
-    '<div class="pr-h">Продано по позициям</div>' +
-    '<table class="pr-table">' +
-      '<tr><th>Позиция</th><th class="pr-right">Кол-во</th><th class="pr-right">Сумма</th></tr>' +
-      summaryRows +
-    '</table>' +
+  function rule(yy, color, from, to) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 0.7;
+    ctx.beginPath();
+    ctx.moveTo(from == null ? PDF_MARGIN : from, yy);
+    ctx.lineTo(to == null ? PDF_PAGE_W - PDF_MARGIN : to, yy);
+    ctx.stroke();
+  }
 
-    '<div class="pr-h">Чеки (' + t.count + ')</div>' +
-    checks +
+  function ensure(space) {
+    if (y + space > bottomLimit) newPage();
+  }
 
-    '<div class="pr-foot"><span>Coffee POS — отчёт за смену</span><span>' + formatDate(endedAt) + '</span></div>';
+  function heading(label) {
+    ensure(36);
+    y += 18;
+    txt(String(label).toUpperCase(), PDF_MARGIN, y, 8.5, true, '#666666');
+    y += 8;
+    rule(y, '#cccccc');
+    y += 9;
+  }
 
-  return true;
+  newPage();
+
+  txt('☕ Coffee POS', PDF_MARGIN, y + 8, 10, true, '#666666');
+  y += 24;
+  txt('Отчёт за смену', PDF_MARGIN, y + 8, 21, true, '#000000');
+  y += 19;
+  txt(formatDate(startedAt) + ' · ' + formatTime(startedAt) + ' — ' + endedLabel, PDF_MARGIN, y + 3, 9, false, '#666666');
+  y += 18;
+
+  var cardGap = 10;
+  var cardW = (contentW - cardGap * 2) / 3;
+  var cardH = 50;
+  var cardValues = [formatMoney(totals.total), String(totals.count), String(totals.items)];
+  var cardLabels = ['ВЫРУЧКА', 'ЧЕКОВ', 'ПОЗИЦИЙ'];
+
+  for (var card = 0; card < 3; card++) {
+    var cardX = PDF_MARGIN + card * (cardW + cardGap);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(cardX, y, cardW, cardH);
+    ctx.strokeStyle = '#c9c9c9';
+    ctx.lineWidth = 0.8;
+    ctx.strokeRect(cardX, y, cardW, cardH);
+    txt(cardValues[card], cardX + cardW / 2, y + 24, 15, true, '#000000', 'center');
+    txt(cardLabels[card], cardX + cardW / 2, y + 39, 7.5, false, '#666666', 'center');
+  }
+  y += cardH + 2;
+
+  heading('По способу оплаты');
+
+  var payRows = [
+    ['Наличные', formatMoney(totals.cash)],
+    ['Карта', formatMoney(totals.card)],
+    ['Смешанный', formatMoney(totals.mixed)]
+  ];
+  for (var pr = 0; pr < payRows.length; pr++) {
+    ensure(16);
+    txt(payRows[pr][0], PDF_MARGIN, y + 10, 9.5, false, '#000000');
+    txt(payRows[pr][1], PDF_PAGE_W - PDF_MARGIN, y + 10, 9.5, true, '#000000', 'right');
+    y += 14;
+    rule(y, '#e5e5e5');
+  }
+
+  heading('Продано по позициям');
+
+  var rightQtyX = PDF_MARGIN + contentW - 110;
+  var rightSumX = PDF_MARGIN + contentW;
+  var nameWidth = contentW - 140;
+
+  txt('ПОЗИЦИЯ', PDF_MARGIN, y + 7, 7.5, true, '#666666');
+  txt('КОЛ-ВО', rightQtyX, y + 7, 7.5, true, '#666666', 'right');
+  txt('СУММА', rightSumX, y + 7, 7.5, true, '#666666', 'right');
+  y += 9;
+  rule(y, '#999999');
+  y += 7;
+
+  for (var sr = 0; sr < totals.summary.length; sr++) {
+    ensure(16);
+    var summaryRow = totals.summary[sr];
+    txt(fit(summaryRow.name, nameWidth), PDF_MARGIN, y + 10, 9.5, false, '#000000');
+    txt(summaryRow.qty, rightQtyX, y + 10, 9.5, false, '#000000', 'right');
+    txt(formatMoney(summaryRow.sum), rightSumX, y + 10, 9.5, true, '#000000', 'right');
+    y += 14;
+    rule(y, '#e5e5e5');
+  }
+
+  heading('Чеки (' + totals.count + ')');
+
+  for (var si = 0; si < sales.length; si++) {
+    var sale = sales[si];
+    var innerWidth = contentW - 24;
+    var boxHeight = 67 + sale.items.length * 14;
+
+    if (y + boxHeight > bottomLimit && y > PDF_MARGIN + 40) newPage();
+
+    var top = y;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(PDF_MARGIN, top, contentW, boxHeight);
+    ctx.strokeStyle = '#c9c9c9';
+    ctx.lineWidth = 0.8;
+    ctx.strokeRect(PDF_MARGIN, top, contentW, boxHeight);
+
+    var leftX = PDF_MARGIN + 12;
+    var rightX = PDF_MARGIN + contentW - 12;
+    var ty = top + 18;
+
+    txt('Чек #' + sale.id, leftX, ty, 9.5, true, '#000000');
+    txt(formatTime(sale.time), rightX, ty, 9.5, true, '#000000', 'right');
+
+    ty += 15;
+    for (var im = 0; im < sale.items.length; im++) {
+      var item = sale.items[im];
+      txt(fit(item.name + ' × ' + item.qty, innerWidth - 70), leftX, ty, 9, false, '#000000');
+      txt(formatMoney(item.price * item.qty), rightX, ty, 9, false, '#000000', 'right');
+      ty += 14;
+    }
+
+    ty += 3;
+    var payLabel = PAYMENT_LABELS[sale.payment] || sale.payment;
+    if (sale.payment === 'mixed') {
+      payLabel += ' · нал. ' + formatMoney(sale.cash) + ' / карта ' + formatMoney(sale.card);
+    }
+    if (sale.change) payLabel += ' · сдача ' + formatMoney(sale.change);
+    txt(fit(payLabel, innerWidth), leftX, ty, 8.5, false, '#555555');
+    ty += 7;
+    rule(ty, '#dedede', leftX, rightX);
+    ty += 14;
+    txt('Итого', leftX, ty, 9.5, true, '#000000');
+    txt(formatMoney(sale.total), rightX, ty, 9.5, true, '#000000', 'right');
+
+    y = top + boxHeight + 8;
+  }
+
+  var pageTotal = pages.length;
+  for (var pg = 0; pg < pageTotal; pg++) {
+    var footer = pages[pg].getContext('2d');
+    footer.font = '400 8px ' + PDF_FONT;
+    footer.fillStyle = '#888888';
+    footer.textAlign = 'left';
+    footer.fillText('Coffee POS — отчёт за смену', PDF_MARGIN, PDF_PAGE_H - 24);
+    footer.textAlign = 'right';
+    footer.fillText('стр. ' + (pg + 1) + ' из ' + pageTotal, PDF_PAGE_W - PDF_MARGIN, PDF_PAGE_H - 24);
+  }
+
+  return pagesToPdf(pages);
 }
 
-function printShiftReport() {
-  if (!buildPrintReport()) {
+function saveShiftPdf() {
+  var sales = shiftSales();
+  if (!state.shift.id || !sales.length) {
     showToast('За эту смену нет продаж');
     return;
   }
 
-  var oldTitle = document.title;
-  document.title = shiftReportName();
+  var blob;
+  try {
+    blob = buildShiftPdf();
+  } catch (err) {
+    showToast('Не удалось создать PDF');
+    return;
+  }
 
-  var restored = false;
-  var restoreTitle = function () {
-    if (restored) return;
-    restored = true;
-    document.title = oldTitle;
-    window.removeEventListener('afterprint', restoreTitle);
-  };
+  var url = URL.createObjectURL(blob);
+  var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
-  window.addEventListener('afterprint', restoreTitle);
-  setTimeout(restoreTitle, 60000);
+  if (isIOS) {
+    window.open(url, '_blank');
+  } else {
+    var link = document.createElement('a');
+    link.href = url;
+    link.download = shiftReportName() + '.pdf';
+    link.rel = 'noopener';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
 
-  window.print();
+  setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+  showToast('PDF сохранён');
 }
 
 function shiftSales() {
