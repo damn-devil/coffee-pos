@@ -13,23 +13,15 @@
 <link rel="icon" href="./icon.svg" type="image/svg+xml" />
 <link rel="apple-touch-icon" href="./icon-180.png" />
 <script>
-/* Самовосстановление: убираем service worker и кэш от предыдущих сборок */
+/* Самовосстановление: убираем service worker от предыдущих сборок (кэш чистит сам sw.js) */
 (function () {
   var CURRENT_SW = /\/sw\.js$/;
-  var CURRENT_CACHE = 'coffee-pos-v4';
   try {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(function (regs) {
         for (var i = 0; i < regs.length; i++) {
           var url = regs[i].active ? regs[i].active.scriptURL : (regs[i].installing ? regs[i].installing.scriptURL : '');
           if (!CURRENT_SW.test(url || '')) regs[i].unregister();
-        }
-      }).catch(function () {});
-    }
-    if (window.caches && caches.keys) {
-      caches.keys().then(function (keys) {
-        for (var i = 0; i < keys.length; i++) {
-          if (keys[i].indexOf('coffee-pos') === 0 && keys[i] !== CURRENT_CACHE) caches.delete(keys[i]);
         }
       }).catch(function () {});
     }
@@ -49,21 +41,25 @@
   --danger:#ff6b6b;
   --success:#4ade80;
   --radius:16px;
+  --safe-t:env(safe-area-inset-top, 0px);
   --safe-b:env(safe-area-inset-bottom, 0px);
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html{touch-action:manipulation}
+html{touch-action:manipulation;-webkit-text-size-adjust:100%;height:100%}
 body{
   font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
   background:var(--bg);color:var(--text);
-  height:100vh;width:100vw;overflow:hidden;
+  height:100vh;height:100dvh;width:100%;
+  overflow:hidden;overscroll-behavior:none;
   display:flex;flex-direction:column;
 }
-button{font-family:inherit}
+button{font-family:inherit;user-select:none;-webkit-user-select:none}
 .app-header{
-  height:60px;flex:0 0 60px;background:var(--surface);
+  height:calc(60px + var(--safe-t));flex:0 0 calc(60px + var(--safe-t));
+  background:var(--surface);
   display:flex;align-items:center;justify-content:space-between;
-  padding:0 16px;border-bottom:1px solid var(--border);z-index:100;gap:8px;
+  padding:var(--safe-t) 16px 0;
+  border-bottom:1px solid var(--border);z-index:100;gap:8px;
 }
 .logo-group{display:flex;align-items:center;gap:10px;min-width:0}
 .app-version{
@@ -107,7 +103,7 @@ button{font-family:inherit}
 .search-wrap{position:relative;display:flex;align-items:center;flex:0 1 auto}
 .search-wrap input{
   padding:10px 14px 10px 36px;border:1px solid var(--border);border-radius:12px;
-  background:var(--surface-lift);font-size:14px;width:170px;color:var(--text);outline:none;
+  background:var(--surface-lift);font-size:16px;width:170px;color:var(--text);outline:none;
 }
 .search-wrap input:focus{border-color:var(--accent)}
 .search-wrap svg{position:absolute;left:12px;color:var(--muted);width:18px;height:18px;pointer-events:none}
@@ -195,7 +191,7 @@ button{font-family:inherit}
 .form-row label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
 .form-row input,.form-row select,.form-row textarea{
   padding:11px 14px;border:1px solid var(--border);border-radius:12px;background:var(--bg);
-  font-size:15px;font-family:inherit;color:var(--text);outline:none;width:100%;
+  font-size:16px;font-family:inherit;color:var(--text);outline:none;width:100%;
 }
 .form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:var(--accent)}
 .btn-primary{
@@ -210,7 +206,7 @@ button{font-family:inherit}
 }
 .btn-outline:active{background:var(--border)}
 .cart-panel{
-  position:fixed;bottom:0;left:0;right:0;height:88vh;background:var(--surface);
+  position:fixed;bottom:0;left:0;right:0;height:88vh;height:88dvh;background:var(--surface);
   border-top:1px solid var(--border);border-radius:20px 20px 0 0;
   box-shadow:0 -20px 50px rgba(0,0,0,.6);z-index:200;
   transform:translateY(105%);transition:transform .25s ease;
@@ -252,7 +248,7 @@ button{font-family:inherit}
 .modal.open{display:flex}
 .modal-content{
   width:100%;max-width:440px;background:var(--surface);border:1px solid var(--border);
-  border-radius:20px;padding:20px;max-height:92vh;overflow-y:auto;
+  border-radius:20px;padding:20px;max-height:92vh;max-height:92dvh;overflow-y:auto;
   box-shadow:0 24px 60px rgba(0,0,0,.7);
 }
 .modal-header{display:flex;align-items:center;gap:10px;margin-bottom:16px}
@@ -281,7 +277,7 @@ button{font-family:inherit}
 .edit-form .row2{display:flex;gap:8px}
 .edit-form input,.edit-form select{
   padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--bg);
-  font-size:15px;font-family:inherit;color:var(--text);outline:none;width:100%;min-width:0;
+  font-size:16px;font-family:inherit;color:var(--text);outline:none;width:100%;min-width:0;
 }
 .edit-form input:focus,.edit-form select:focus{border-color:var(--accent)}
 .edit-form .emoji-input{width:62px;text-align:center;flex:0 0 auto;font-size:18px}
@@ -321,7 +317,7 @@ button{font-family:inherit}
 <header class="app-header">
   <div class="logo-group">
     <h1 class="app-title">☕ Coffee POS</h1>
-    <span class="app-version" id="app-version">v1.1.0</span>
+    <span class="app-version" id="app-version">v1.2.0</span>
   </div>
   <div class="header-actions">
     <button class="icon-btn" id="editor-btn" title="Редактировать меню" aria-label="Редактировать меню">
@@ -577,7 +573,7 @@ var STORAGE_KEY = 'coffee_pos_data';
 var MENU_CACHE_KEY = 'coffee_pos_menu';
 var MENU_DIRTY_KEY = 'coffee_pos_menu_dirty';
 var GH_KEY = 'coffee_pos_github';
-var APP_VERSION = '1.1.0';
+var APP_VERSION = '1.2.0';
 var MENU_FILE = 'menu.json';
 
 var state = {
@@ -1699,9 +1695,29 @@ function showToast(message) {
 
 init();
 
+/* Автообновление приложения: новый service worker применяется сам, без переустановки */
 if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
+  var hadController = !!navigator.serviceWorker.controller;
+  var reloading = false;
+
   window.addEventListener('load', function () {
-    navigator.serviceWorker.register('./sw.js').catch(function () {});
+    navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(function (reg) {
+      function checkForUpdate() {
+        reg.update().catch(function () {});
+      }
+      checkForUpdate();
+      setInterval(checkForUpdate, 60000);
+      document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'visible') checkForUpdate();
+      });
+      window.addEventListener('focus', checkForUpdate);
+    }).catch(function () {});
+  });
+
+  navigator.serviceWorker.addEventListener('controllerchange', function () {
+    if (!hadController || reloading) return;
+    reloading = true;
+    window.location.reload();
   });
 }
 </script>
