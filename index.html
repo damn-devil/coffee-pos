@@ -303,13 +303,53 @@ button{font-family:inherit;user-select:none;-webkit-user-select:none}
 }
 .dirty-note.show{display:flex}
 .hint{font-size:11px;line-height:1.5;color:var(--muted);margin-top:8px}
-.gh-status{font-size:12px;line-height:1.5;margin-top:10px;font-weight:700;word-break:break-word}
-.gh-status.ok{color:var(--success)}
-.gh-status.err{color:var(--danger)}
-.gh-status.work{color:var(--accent)}
+.sync-idle{color:var(--muted)}
+.sync-ok{color:var(--success)}
+.sync-err{color:var(--danger)}
+.sync-work{color:var(--accent)}
 .steps{font-size:11px;line-height:1.6;color:var(--muted);background:var(--surface-lift);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:14px}
 .steps b{color:var(--text)}
 .steps a{color:var(--accent)}
+
+/* ---------- отчёт для печати / PDF ---------- */
+#print-report{display:none}
+
+@media print{
+  @page{size:A4;margin:12mm}
+  html,body{height:auto;width:auto;overflow:visible;background:#fff;color:#000}
+  .app-header,.tab-nav,.app-main,.cart-panel,.modal,.toast{display:none !important}
+  #print-report{
+    display:block;color:#000;background:#fff;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size:12px;line-height:1.4;
+  }
+  .pr-brand{font-size:15px;font-weight:800;letter-spacing:.3px}
+  .pr-title{font-size:22px;font-weight:800;margin-top:2px}
+  .pr-sub{font-size:11px;color:#555;margin-bottom:14px}
+  .pr-grid{display:flex;gap:10px;margin:0 0 14px}
+  .pr-card{flex:1;border:1px solid #bbb;border-radius:6px;padding:8px 6px;text-align:center}
+  .pr-card b{display:block;font-size:16px}
+  .pr-card span{font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.4px}
+  .pr-h{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#555;margin:16px 0 6px}
+  table.pr-table{width:100%;border-collapse:collapse;font-size:11px}
+  table.pr-table th{
+    text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.4px;
+    color:#555;border-bottom:1px solid #888;padding:5px 4px;
+  }
+  table.pr-table td{border-bottom:1px solid #ddd;padding:5px 4px;vertical-align:top}
+  .pr-right{text-align:right;white-space:nowrap}
+  .pr-check{border:1px solid #ccc;border-radius:6px;padding:8px 10px;margin-bottom:8px;break-inside:avoid}
+  .pr-check-top{display:flex;justify-content:space-between;font-weight:800;font-size:11px;margin-bottom:4px}
+  .pr-check-row{display:flex;justify-content:space-between;gap:10px;font-size:11px;padding:1px 0}
+  .pr-check-total{
+    display:flex;justify-content:space-between;gap:10px;font-weight:800;font-size:11px;
+    border-top:1px solid #ddd;margin-top:5px;padding-top:4px;
+  }
+  .pr-foot{
+    margin-top:18px;border-top:1px solid #bbb;padding-top:8px;
+    font-size:10px;color:#666;display:flex;justify-content:space-between;gap:10px;
+  }
+}
 </style>
 </head>
 <body>
@@ -317,7 +357,7 @@ button{font-family:inherit;user-select:none;-webkit-user-select:none}
 <header class="app-header">
   <div class="logo-group">
     <h1 class="app-title">☕ Coffee POS</h1>
-    <span class="app-version" id="app-version">v1.2.0</span>
+    <span class="app-version" id="app-version">v1.3.0</span>
   </div>
   <div class="header-actions">
     <button class="icon-btn" id="editor-btn" title="Редактировать меню" aria-label="Редактировать меню">
@@ -362,7 +402,10 @@ button{font-family:inherit;user-select:none;-webkit-user-select:none}
   <section id="view-shift" class="view">
     <div class="section-header">
       <h2>Отчёт за смену</h2>
-      <button class="btn-primary" id="shift-toggle">Открыть смену</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+        <button class="btn-outline" id="shift-pdf" style="display:none">PDF</button>
+        <button class="btn-primary" id="shift-toggle">Открыть смену</button>
+      </div>
     </div>
 
     <div class="shift-status" id="shift-status">
@@ -499,10 +542,10 @@ button{font-family:inherit;user-select:none;-webkit-user-select:none}
     <div class="edit-tabs">
       <button class="tab-btn active" data-etab="products">Позиции</button>
       <button class="tab-btn" data-etab="categories">Категории</button>
-      <button class="tab-btn" data-etab="github">GitHub</button>
+      <button class="tab-btn" data-etab="sync">Общее меню</button>
     </div>
 
-    <div class="dirty-note" id="dirty-note">● Есть несохранённые изменения — отправьте меню на GitHub</div>
+    <div class="dirty-note" id="dirty-note">● Меню ещё не отправлено на другие телефоны</div>
 
     <div id="etab-products">
       <div class="edit-form">
@@ -530,41 +573,39 @@ button{font-family:inherit;user-select:none;-webkit-user-select:none}
       <div class="edit-list" id="editor-categories-list"></div>
     </div>
 
-    <div id="etab-github" style="display:none">
+    <div id="etab-sync" style="display:none">
       <div class="steps">
-        <b>Как подключить запись в GitHub (один раз):</b><br>
-        1. Откройте <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">создание токена</a>.<br>
-        2. Repository access → <b>Only select repositories</b> → выберите <b>coffee-pos</b>.<br>
-        3. Permissions → Repository permissions → <b>Contents: Read and write</b>.<br>
-        4. Create token и вставьте его ниже.<br>
-        Токен хранится только на этом телефоне.
+        <b>Общее меню для всех телефонов</b><br>
+        Всё меняется автоматически: изменили меню здесь — оно появилось на остальных телефонах за несколько секунд. Никаких токенов и настроек.
       </div>
-      <div class="form-row">
-        <label for="gh-owner">Владелец</label>
-        <input type="text" id="gh-owner" placeholder="damn-devil" autocomplete="off" />
+      <div class="edit-row" style="margin-bottom:12px">
+        <div class="edit-row-main">
+          <div class="edit-row-title">Синхронизация</div>
+          <div class="edit-row-sub" id="sync-status">—</div>
+        </div>
       </div>
-      <div class="form-row">
-        <label for="gh-repo">Репозиторий</label>
-        <input type="text" id="gh-repo" placeholder="coffee-pos" autocomplete="off" />
+      <div class="modal-actions" style="margin-top:0">
+        <button class="btn-outline" id="sync-pull">Обновить</button>
+        <button class="btn-primary" id="sync-push">Отправить</button>
       </div>
-      <div class="form-row">
-        <label for="gh-branch">Ветка</label>
-        <input type="text" id="gh-branch" placeholder="main" autocomplete="off" />
-      </div>
-      <div class="form-row">
-        <label for="gh-token">Токен</label>
-        <input type="password" id="gh-token" placeholder="github_pat_..." autocomplete="off" />
-      </div>
-      <div class="modal-actions" style="margin-top:4px">
-        <button class="btn-outline" id="gh-check">Проверить</button>
-        <button class="btn-primary" id="gh-save">Сохранить</button>
-      </div>
-      <button class="btn-primary" id="gh-push" style="width:100%;margin-top:10px">Отправить меню на GitHub</button>
-      <div class="gh-status" id="gh-status"></div>
-      <div class="hint">Изменения сразу применяются на этом телефоне. На GitHub они попадают после нажатия «Отправить меню на GitHub»; сайт обновится примерно через минуту.</div>
+      <div class="hint">Без интернета меню продолжает работать с этого телефона, а изменения уйдут, когда связь появится. В репозиторий GitHub меню попадает автоматически каждые 10 минут.</div>
     </div>
   </div>
 </div>
+
+<div class="modal" id="shift-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <span style="width:42px"></span>
+      <h2 id="shift-modal-title">Закрыть смену?</h2>
+      <span style="width:42px"></span>
+    </div>
+    <div class="checkout-summary" id="shift-modal-body"></div>
+    <div class="modal-actions" id="shift-modal-actions"></div>
+  </div>
+</div>
+
+<div id="print-report"></div>
 
 <div class="toast" id="toast">Готово</div>
 
@@ -573,7 +614,7 @@ var STORAGE_KEY = 'coffee_pos_data';
 var MENU_CACHE_KEY = 'coffee_pos_menu';
 var MENU_DIRTY_KEY = 'coffee_pos_menu_dirty';
 var GH_KEY = 'coffee_pos_github';
-var APP_VERSION = '1.2.0';
+var APP_VERSION = '1.3.0';
 var MENU_FILE = 'menu.json';
 
 var state = {
@@ -581,7 +622,7 @@ var state = {
   products: [],
   cart: [],
   sales: [],
-  shift: { open: false, openedAt: null, id: null },
+  shift: { open: false, openedAt: null, closedAt: null, id: null },
   activeCategory: 'all',
   editingProductId: null,
   editingCategoryId: null,
@@ -665,6 +706,7 @@ function loadStoredData() {
       state.shift = {
         open: !!data.shift.open,
         openedAt: data.shift.openedAt || null,
+        closedAt: data.shift.closedAt || null,
         id: data.shift.id || null
       };
     }
@@ -732,21 +774,28 @@ function bootMenu() {
   cacheMenu();
   saveData();
 
-  if (location.protocol.indexOf('http') !== 0) return;
+  if (location.protocol.indexOf('http') !== 0) {
+    setSyncState('Локальный режим', 'err');
+    return;
+  }
 
-  fetch('./' + MENU_FILE + '?t=' + Date.now(), { cache: 'no-store' })
-    .then(function (r) { return r.ok ? r.json() : null; })
-    .then(function (data) {
-      if (!data || !Array.isArray(data.products)) return;
-      if (isDirty()) return;
-      if (applyMenu(data)) {
-        cacheMenu();
-        renderCategories();
-        renderProducts();
-        renderEditor();
-      }
-    })
-    .catch(function () {});
+  syncPull(false).then(function (applied) {
+    if (applied) return;
+    return fetch('./' + MENU_FILE + '?t=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (!validMenu(data) || isDirty()) return;
+        if (applyMenu(data)) {
+          cacheMenu();
+          refreshMenuViews();
+        }
+      });
+  }).catch(function () {}).then(function () {
+    if (!state.products.length) {
+      applyMenu(DEFAULT_MENU);
+      refreshMenuViews();
+    }
+  });
 }
 
 /* ---------------- запуск ---------------- */
@@ -765,6 +814,7 @@ function init() {
   renderEditor();
   updateDirtyNote();
   setupListeners();
+  startSync();
 }
 
 function setupListeners() {
@@ -813,11 +863,14 @@ function setupListeners() {
   $('cat-save').addEventListener('click', saveCategoryFromForm);
   $('cat-cancel').addEventListener('click', resetCategoryForm);
 
-  $('gh-save').addEventListener('click', saveGitHubSettings);
-  $('gh-check').addEventListener('click', checkGitHub);
-  $('gh-push').addEventListener('click', pushMenuToGitHub);
+  $('sync-pull').addEventListener('click', function () { syncPull(true); });
+  $('sync-push').addEventListener('click', function () { syncPush(); });
 
   $('shift-toggle').addEventListener('click', toggleShift);
+  $('shift-pdf').addEventListener('click', printShiftReport);
+  $('shift-modal').addEventListener('click', function (e) {
+    if (e.target === this) closeShiftModal();
+  });
 }
 
 function switchTab(tab) {
@@ -1127,7 +1180,7 @@ function confirmCheckout() {
   var paidTotal = payment === 'cash' ? cash : (payment === 'card' ? total : cash + card);
 
   if (!state.shift.open) {
-    state.shift = { open: true, openedAt: Date.now(), id: 'shift_' + Date.now() };
+    state.shift = { open: true, openedAt: Date.now(), closedAt: null, id: 'shift_' + Date.now() };
   }
 
   var sale = {
@@ -1155,19 +1208,226 @@ function confirmCheckout() {
 
 function toggleShift() {
   if (!state.shift.open) {
-    state.shift = { open: true, openedAt: Date.now(), id: 'shift_' + Date.now() };
+    state.shift = { open: true, openedAt: Date.now(), closedAt: null, id: 'shift_' + Date.now() };
     saveData();
     renderShift();
     showToast('Смена открыта');
     switchTab('shift');
     return;
   }
-  var ok = window.confirm('Закрыть смену и сохранить отчёт?');
-  if (!ok) return;
+  openShiftCloseModal();
+}
+
+function openShiftCloseModal() {
+  var t = shiftTotals();
+
+  $('shift-modal-title').textContent = 'Закрыть смену?';
+  $('shift-modal-body').innerHTML =
+    '<div class="row"><span>Выручка</span><span>' + formatMoney(t.total) + '</span></div>' +
+    '<div class="row"><span>Чеков</span><span>' + t.count + '</span></div>' +
+    '<div class="row"><span>Позиций</span><span>' + t.items + '</span></div>';
+
+  $('shift-modal-actions').innerHTML =
+    '<button class="btn-outline" id="shift-modal-cancel">Отмена</button>' +
+    '<button class="btn-primary" id="shift-modal-confirm">Закрыть смену</button>';
+
+  $('shift-modal-cancel').onclick = closeShiftModal;
+  $('shift-modal-confirm').onclick = confirmCloseShift;
+  $('shift-modal').classList.add('open');
+}
+
+function confirmCloseShift() {
   state.shift.open = false;
+  state.shift.closedAt = Date.now();
   saveData();
   renderShift();
-  showToast('Смена закрыта');
+  showShiftSavedModal();
+}
+
+function showShiftSavedModal() {
+  var t = shiftTotals();
+
+  $('shift-modal-title').textContent = 'Смена закрыта';
+  $('shift-modal-body').innerHTML =
+    '<div class="row"><span>Выручка</span><span>' + formatMoney(t.total) + '</span></div>' +
+    '<div class="row"><span>Чеков</span><span>' + t.count + '</span></div>' +
+    '<div class="row"><span>Позиций</span><span>' + t.items + '</span></div>';
+
+  if (t.count > 0) {
+    $('shift-modal-actions').innerHTML =
+      '<button class="btn-outline" id="shift-modal-later">Позже</button>' +
+      '<button class="btn-primary" id="shift-modal-pdf">Сохранить PDF</button>';
+    $('shift-modal-later').onclick = closeShiftModal;
+    $('shift-modal-pdf').onclick = function () {
+      closeShiftModal();
+      printShiftReport();
+    };
+  } else {
+    $('shift-modal-actions').innerHTML =
+      '<button class="btn-primary" id="shift-modal-later">Понятно</button>';
+    $('shift-modal-later').onclick = closeShiftModal;
+  }
+
+  $('shift-modal').classList.add('open');
+}
+
+function closeShiftModal() {
+  $('shift-modal').classList.remove('open');
+}
+
+function shiftTotals() {
+  var sales = shiftSales();
+  var result = {
+    sales: sales,
+    total: 0,
+    count: sales.length,
+    items: 0,
+    cash: 0,
+    card: 0,
+    mixed: 0,
+    summary: []
+  };
+  var summary = {};
+
+  for (var i = 0; i < sales.length; i++) {
+    var sale = sales[i];
+    result.total += sale.total;
+
+    if (sale.payment === 'cash') {
+      result.cash += sale.total;
+    } else if (sale.payment === 'card') {
+      result.card += sale.total;
+    } else {
+      result.mixed += sale.total;
+      result.cash += sale.cash || 0;
+      result.card += sale.card || 0;
+    }
+
+    for (var j = 0; j < sale.items.length; j++) {
+      var item = sale.items[j];
+      result.items += item.qty;
+      if (!summary[item.name]) summary[item.name] = { name: item.name, qty: 0, sum: 0 };
+      summary[item.name].qty += item.qty;
+      summary[item.name].sum += item.price * item.qty;
+    }
+  }
+
+  var names = Object.keys(summary).sort(function (a, b) { return summary[b].sum - summary[a].sum; });
+  for (var n = 0; n < names.length; n++) result.summary.push(summary[names[n]]);
+
+  return result;
+}
+
+function formatDate(ts) {
+  return new Date(ts).toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' });
+}
+
+function shiftReportName() {
+  var stamp = new Date(state.shift.openedAt || Date.now());
+  var day = ('0' + stamp.getDate()).slice(-2);
+  var month = ('0' + (stamp.getMonth() + 1)).slice(-2);
+  return 'Смена ' + day + '.' + month + '.' + stamp.getFullYear();
+}
+
+function buildPrintReport() {
+  var box = $('print-report');
+  var sales = shiftSales();
+
+  if (!state.shift.id || !sales.length) {
+    box.innerHTML = '';
+    return false;
+  }
+
+  var t = shiftTotals();
+  var startedAt = state.shift.openedAt || sales[0].time;
+  var endedAt = state.shift.closedAt || sales[sales.length - 1].time;
+  var endedLabel = state.shift.closedAt ? formatTime(state.shift.closedAt) : 'смена открыта';
+
+  var summaryRows = '';
+  for (var i = 0; i < t.summary.length; i++) {
+    var row = t.summary[i];
+    summaryRows += '<tr><td>' + escapeHtml(row.name) + '</td>' +
+      '<td class="pr-right">' + row.qty + '</td>' +
+      '<td class="pr-right">' + formatMoney(row.sum) + '</td></tr>';
+  }
+
+  var checks = '';
+  for (var k = 0; k < sales.length; k++) {
+    var s = sales[k];
+    var itemsHtml = '';
+    for (var m = 0; m < s.items.length; m++) {
+      var si = s.items[m];
+      itemsHtml += '<div class="pr-check-row"><span>' + escapeHtml(si.name) + ' × ' + si.qty + '</span>' +
+        '<span>' + formatMoney(si.price * si.qty) + '</span></div>';
+    }
+
+    var payLabel = PAYMENT_LABELS[s.payment] || s.payment;
+    if (s.payment === 'mixed') {
+      payLabel += ' · нал. ' + formatMoney(s.cash) + ' / карта ' + formatMoney(s.card);
+    }
+    var changeHtml = s.change ? 'Сдача ' + formatMoney(s.change) : '';
+
+    checks += '<div class="pr-check">' +
+      '<div class="pr-check-top"><span>Чек #' + escapeHtml(s.id) + '</span><span>' + formatTime(s.time) + '</span></div>' +
+      itemsHtml +
+      '<div class="pr-check-row" style="color:#555"><span>' + escapeHtml(payLabel) + '</span><span>' + changeHtml + '</span></div>' +
+      '<div class="pr-check-total"><span>Итого</span><span>' + formatMoney(s.total) + '</span></div>' +
+    '</div>';
+  }
+
+  box.innerHTML =
+    '<div class="pr-brand">☕ Coffee POS</div>' +
+    '<div class="pr-title">Отчёт за смену</div>' +
+    '<div class="pr-sub">' + formatDate(startedAt) + ' · ' + formatTime(startedAt) + ' — ' + endedLabel + '</div>' +
+
+    '<div class="pr-grid">' +
+      '<div class="pr-card"><b>' + formatMoney(t.total) + '</b><span>Выручка</span></div>' +
+      '<div class="pr-card"><b>' + t.count + '</b><span>Чеков</span></div>' +
+      '<div class="pr-card"><b>' + t.items + '</b><span>Позиций</span></div>' +
+    '</div>' +
+
+    '<div class="pr-h">По способу оплаты</div>' +
+    '<table class="pr-table">' +
+      '<tr><td>Наличные</td><td class="pr-right">' + formatMoney(t.cash) + '</td></tr>' +
+      '<tr><td>Карта</td><td class="pr-right">' + formatMoney(t.card) + '</td></tr>' +
+      '<tr><td>Смешанный</td><td class="pr-right">' + formatMoney(t.mixed) + '</td></tr>' +
+    '</table>' +
+
+    '<div class="pr-h">Продано по позициям</div>' +
+    '<table class="pr-table">' +
+      '<tr><th>Позиция</th><th class="pr-right">Кол-во</th><th class="pr-right">Сумма</th></tr>' +
+      summaryRows +
+    '</table>' +
+
+    '<div class="pr-h">Чеки (' + t.count + ')</div>' +
+    checks +
+
+    '<div class="pr-foot"><span>Coffee POS — отчёт за смену</span><span>' + formatDate(endedAt) + '</span></div>';
+
+  return true;
+}
+
+function printShiftReport() {
+  if (!buildPrintReport()) {
+    showToast('За эту смену нет продаж');
+    return;
+  }
+
+  var oldTitle = document.title;
+  document.title = shiftReportName();
+
+  var restored = false;
+  var restoreTitle = function () {
+    if (restored) return;
+    restored = true;
+    document.title = oldTitle;
+    window.removeEventListener('afterprint', restoreTitle);
+  };
+
+  window.addEventListener('afterprint', restoreTitle);
+  setTimeout(restoreTitle, 60000);
+
+  window.print();
 }
 
 function shiftSales() {
@@ -1193,15 +1453,21 @@ function renderShift() {
   if (isOpen) {
     statusText.textContent = 'Начало: ' + formatTime(state.shift.openedAt);
     statusText.style.color = 'var(--success)';
+  } else if (state.shift.id) {
+    statusText.textContent = state.shift.closedAt
+      ? 'Закрыта в ' + formatTime(state.shift.closedAt) + ' · отчёт сохранён'
+      : 'Отчёт за последнюю смену сохранён';
+    statusText.style.color = 'var(--muted)';
   } else {
-    statusText.textContent = state.shift.id
-      ? 'Отчёт за последнюю смену сохранён'
-      : 'Откройте смену, чтобы начать учёт продаж';
+    statusText.textContent = 'Откройте смену, чтобы начать учёт продаж';
     statusText.style.color = 'var(--muted)';
   }
 
   var sales = shiftSales();
   var hasData = sales.length > 0 || isOpen;
+
+  var pdfBtn = $('shift-pdf');
+  if (pdfBtn) pdfBtn.style.display = sales.length ? 'block' : 'none';
 
   $('shift-stats').style.display = hasData ? 'grid' : 'none';
   $('shift-payments-wrap').style.display = sales.length ? 'block' : 'none';
@@ -1288,7 +1554,6 @@ function renderShift() {
 
 function openEditor() {
   renderEditor();
-  fillGitHubFields();
   updateDirtyNote();
   $('editor-modal').classList.add('open');
 }
@@ -1307,7 +1572,7 @@ function switchEditorTab(tab) {
   }
   $('etab-products').style.display = tab === 'products' ? 'block' : 'none';
   $('etab-categories').style.display = tab === 'categories' ? 'block' : 'none';
-  $('etab-github').style.display = tab === 'github' ? 'block' : 'none';
+  $('etab-sync').style.display = tab === 'sync' ? 'block' : 'none';
 }
 
 function renderEditor() {
@@ -1551,134 +1816,136 @@ function afterMenuChange() {
   renderCategories();
   renderProducts();
   renderEditor();
+  syncPush();
 }
 
-/* ---------------- GitHub ---------------- */
+/* ---------------- общее меню (синхронизация) ---------------- */
 
-function getGitHubConfig() {
-  return readJson(GH_KEY);
-}
+var SYNC_TOPIC = 'coffee_pos_menu_9f4c1e7a2b';
+var SYNC_URL = 'https://ntfy.sh/' + SYNC_TOPIC;
+var SYNC_LIMIT = 3500;
 
-function fillGitHubFields() {
-  var cfg = getGitHubConfig() || {};
-  $('gh-owner').value = cfg.owner || 'damn-devil';
-  $('gh-repo').value = cfg.repo || 'coffee-pos';
-  $('gh-branch').value = cfg.branch || 'main';
-  $('gh-token').value = cfg.token || '';
-}
-
-function readGitHubFields() {
-  return {
-    owner: ($('gh-owner').value || '').trim(),
-    repo: ($('gh-repo').value || '').trim(),
-    branch: ($('gh-branch').value || '').trim() || 'main',
-    token: ($('gh-token').value || '').trim()
-  };
-}
-
-function saveGitHubSettings() {
-  var cfg = readGitHubFields();
-  if (!cfg.owner || !cfg.repo) { setGhStatus('Заполните владельца и репозиторий', 'err'); return; }
-  if (!cfg.token) { setGhStatus('Вставьте токен GitHub', 'err'); return; }
-  writeJson(GH_KEY, cfg);
-  setGhStatus('Настройки сохранены на этом устройстве', 'ok');
-}
-
-function setGhStatus(text, kind) {
-  var el = $('gh-status');
+function setSyncState(text, kind) {
+  var el = $('sync-status');
+  if (!el) return;
   el.textContent = text;
-  el.className = 'gh-status' + (kind ? ' ' + kind : '');
+  el.className = 'edit-row-sub sync-' + (kind || 'idle');
 }
 
-function ghHeaders(cfg) {
-  return {
-    'Authorization': 'Bearer ' + cfg.token,
-    'Accept': 'application/vnd.github+json',
-    'X-GitHub-Api-Version': '2022-11-28',
-    'Content-Type': 'application/json'
-  };
-}
-
-function toBase64Utf8(str) {
-  var bytes = new TextEncoder().encode(str);
-  var binary = '';
-  for (var i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-  return btoa(binary);
-}
-
-function menuPayload() {
+function syncPayload() {
   return JSON.stringify({
     updatedAt: new Date().toISOString(),
     categories: state.categories,
     products: state.products
-  }, null, 2) + '\n';
+  });
 }
 
-function checkGitHub() {
-  var cfg = readGitHubFields();
-  if (!cfg.owner || !cfg.repo || !cfg.token) { setGhStatus('Заполните все поля', 'err'); return; }
-  setGhStatus('Проверяем доступ…', 'work');
-  fetch('https://api.github.com/repos/' + cfg.owner + '/' + cfg.repo, { headers: ghHeaders(cfg) })
-    .then(function (res) {
-      if (res.ok) return res.json();
-      return res.json().then(function (err) {
-        throw new Error(err.message || ('HTTP ' + res.status));
-      });
-    })
-    .then(function (repo) {
-      writeJson(GH_KEY, cfg);
-      setGhStatus('Доступ есть: ' + repo.full_name + ' (ветка ' + cfg.branch + ')', 'ok');
-    })
-    .catch(function (err) {
-      setGhStatus('Ошибка: ' + err.message, 'err');
-    });
+function validMenu(data) {
+  return data && Array.isArray(data.products) && Array.isArray(data.categories);
 }
 
-function pushMenuToGitHub() {
-  var cfg = readGitHubFields();
-  if (!cfg.owner || !cfg.repo || !cfg.token) {
-    setGhStatus('Сначала заполните и сохраните настройки GitHub', 'err');
-    return;
+function refreshMenuViews() {
+  renderCategories();
+  renderProducts();
+  renderEditor();
+}
+
+function syncPull(manual) {
+  if (location.protocol.indexOf('http') !== 0) {
+    setSyncState('Локальный режим', 'err');
+    return Promise.resolve(false);
   }
-  writeJson(GH_KEY, cfg);
+  if (manual) setSyncState('Обновляем…', 'work');
 
-  var api = 'https://api.github.com/repos/' + cfg.owner + '/' + cfg.repo + '/contents/' + MENU_FILE;
-  var branch = cfg.branch || 'main';
-  setGhStatus('Отправляем меню на GitHub…', 'work');
-
-  fetch(api + '?ref=' + encodeURIComponent(branch), { headers: ghHeaders(cfg) })
+  return fetch(SYNC_URL + '/json?poll=1&since=all', { cache: 'no-store' })
     .then(function (res) {
-      if (res.status === 404) return { sha: null };
-      if (!res.ok) {
-        return res.json().then(function (err) { throw new Error(err.message || ('HTTP ' + res.status)); });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.text();
+    })
+    .then(function (text) {
+      var lines = text.split('\n');
+      var event = null;
+      for (var i = lines.length - 1; i >= 0; i--) {
+        var line = lines[i].trim();
+        if (!line) continue;
+        try {
+          var parsed = JSON.parse(line);
+          if (parsed && (!parsed.event || parsed.event === 'message')) { event = parsed; break; }
+        } catch (e) {}
       }
-      return res.json();
+      if (!event) return null;
+
+      if (event.message && event.message.charAt(0) === '{') {
+        try { return JSON.parse(event.message); } catch (e) { return null; }
+      }
+      if (event.attachment && event.attachment.url) {
+        return fetch(event.attachment.url, { cache: 'no-store' })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .catch(function () { return null; });
+      }
+      return null;
     })
-    .then(function (meta) {
-      var body = {
-        message: 'Обновление меню',
-        content: toBase64Utf8(menuPayload()),
-        branch: branch
-      };
-      if (meta && meta.sha) body.sha = meta.sha;
-      return fetch(api, {
-        method: 'PUT',
-        headers: ghHeaders(cfg),
-        body: JSON.stringify(body)
-      });
-    })
-    .then(function (res) {
-      if (res.ok) return res.json();
-      return res.json().then(function (err) { throw new Error(err.message || ('HTTP ' + res.status)); });
-    })
-    .then(function () {
-      markClean();
-      setGhStatus('Готово: меню сохранено в ' + cfg.owner + '/' + cfg.repo + '. Сайт обновится через ~1 минуту.', 'ok');
-      showToast('Меню сохранено на GitHub');
+    .then(function (data) {
+      if (!validMenu(data)) {
+        if (manual) setSyncState('В общем меню пока пусто', 'idle');
+        return false;
+      }
+      if (isDirty()) {
+        if (manual) setSyncState('Есть несохранённые изменения', 'work');
+        return false;
+      }
+      applyMenu(data);
+      cacheMenu();
+      refreshMenuViews();
+      setSyncState('Обновлено ' + formatTime(Date.now()), 'ok');
+      return true;
     })
     .catch(function (err) {
-      setGhStatus('Не удалось сохранить: ' + err.message, 'err');
+      setSyncState('Нет связи — меню локально', 'err');
+      return false;
     });
+}
+
+function syncPush() {
+  if (location.protocol.indexOf('http') !== 0) {
+    setSyncState('Локальный режим', 'err');
+    return Promise.resolve(false);
+  }
+  var payload = syncPayload();
+  setSyncState('Отправляем…', 'work');
+
+  var request;
+  if (payload.length > SYNC_LIMIT) {
+    request = fetch(SYNC_URL, {
+      method: 'PUT',
+      headers: { 'Filename': 'menu.json' },
+      body: payload
+    });
+  } else {
+    request = fetch(SYNC_URL, { method: 'POST', body: payload });
+  }
+
+  return request
+    .then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      markClean();
+      setSyncState('Сохранено ' + formatTime(Date.now()) + ' — на всех телефонах', 'ok');
+      return true;
+    })
+    .catch(function (err) {
+      setSyncState('Не отправлено: ' + err.message, 'err');
+      return false;
+    });
+}
+
+function startSync() {
+  if (location.protocol.indexOf('http') !== 0) return;
+  setInterval(function () {
+    if (document.visibilityState === 'visible') syncPull(false);
+  }, 20000);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') syncPull(false);
+  });
 }
 
 /* ---------------- прочее ---------------- */
