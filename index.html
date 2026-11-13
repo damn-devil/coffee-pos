@@ -298,6 +298,7 @@ button{font-family:inherit;user-select:none;-webkit-user-select:none}
   border:1px solid var(--border);border-radius:9px;background:var(--bg);
   cursor:pointer;color:var(--muted);font-size:15px;
 }
+.btn-icon-sm svg{width:16px;height:16px;display:block}
 .btn-icon-sm:active{background:var(--border)}
 .btn-icon-sm.danger{color:var(--danger)}
 .edit-empty{text-align:center;color:var(--muted);font-size:13px;padding:18px 8px}
@@ -473,12 +474,11 @@ button{font-family:inherit;user-select:none;-webkit-user-select:none}
       </div>
       <div class="calc-row">
         <span class="calc-label">Наличными</span>
-        <input type="number" step="0.01" min="0" inputmode="decimal" id="checkout-cash" class="calc-input" placeholder="0" />
-        <input type="number" step="0.01" min="0" inputmode="decimal" id="checkout-card" class="calc-input" placeholder="0" />
+        <input type="text" inputmode="decimal" id="checkout-cash" class="calc-input" placeholder="0" />
       </div>
       <div class="calc-row" id="card-pay-row" style="display:none">
         <span class="calc-label">Картой</span>
-        <input type="number" inputmode="numeric" id="checkout-card" class="calc-input" placeholder="0" />
+        <input type="text" inputmode="decimal" id="checkout-card" class="calc-input" placeholder="0" />
       </div>
       <div class="calc-row">
         <span class="calc-label">Сдача</span>
@@ -518,7 +518,7 @@ button{font-family:inherit;user-select:none;-webkit-user-select:none}
       <div class="edit-form">
         <input type="text" id="prod-name" placeholder="Название позиции" autocomplete="off" />
         <div class="row2">
-          <input type="number" step="0.01" min="0" inputmode="decimal" id="prod-price" placeholder="Цена, Br" />
+          <input type="text" inputmode="decimal" id="prod-price" placeholder="Цена, Br" />
           <input type="text" id="prod-emoji" class="emoji-input" placeholder="☕" maxlength="3" />
         </div>
         <select id="prod-category"></select>
@@ -623,6 +623,11 @@ function $(id) { return document.getElementById(id); }
 function formatMoney(value) {
   var rounded = Math.round((value || 0) * 100) / 100;
   return rounded.toLocaleString('ru-RU') + ' Br';
+}
+
+function toNum(value) {
+  var n = parseFloat(String(value == null ? '' : value).replace(',', '.'));
+  return isNaN(n) ? 0 : n;
 }
 
 function formatTime(ts) {
@@ -831,8 +836,19 @@ function setupListeners() {
   });
 
   $('checkout-payment').addEventListener('change', onPaymentChange);
-  $('checkout-cash').addEventListener('input', calcChange);
-  $('checkout-card').addEventListener('input', calcChange);
+  var moneyIds = ['checkout-cash', 'checkout-card', 'prod-price'];
+  for (var mi = 0; mi < moneyIds.length; mi++) {
+    (function (id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('input', function (e) {
+        var v = String(e.target.value == null ? '' : e.target.value).replace(',', '.');
+        var n = parseFloat(v);
+        e.target.value = isNaN(n) ? '' : v;
+        if (id === 'checkout-cash' || id === 'checkout-card') calcChange();
+      });
+    })(moneyIds[mi]);
+  }
   $('checkout-cash').addEventListener('focus', function () { this.select(); });
 
   $('prod-save').addEventListener('click', saveProductFromForm);
@@ -1111,8 +1127,8 @@ function onPaymentChange() {
 function calcChange() {
   var total = cartTotal();
   var payment = $('checkout-payment').value;
-  var cash = parseFloat($('checkout-cash').value) || 0;
-  var card = parseFloat($('checkout-card').value) || 0;
+  var cash = toNum($('checkout-cash').value);
+  var card = toNum($('checkout-card').value);
   var paid;
 
   if (payment === 'cash') paid = cash;
@@ -1136,8 +1152,8 @@ function confirmCheckout() {
 
   var total = cartTotal();
   var payment = $('checkout-payment').value;
-  var cash = parseFloat($('checkout-cash').value) || 0;
-  var card = parseFloat($('checkout-card').value) || 0;
+  var cash = toNum($('checkout-cash').value);
+  var card = toNum($('checkout-card').value);
 
   var cashPart = 0;
   var cardPart = 0;
@@ -1815,8 +1831,12 @@ function renderEditorProducts() {
         '<div class="edit-row-sub">' + escapeHtml(categoryName(p.category)) + ' · ' + formatMoney(p.price) + '</div>' +
       '</div>' +
       '<div class="edit-row-actions">' +
-        '<button type="button" class="btn-icon-sm" data-edit="' + escapeHtml(p.id) + '">✏️</button>' +
-        '<button type="button" class="btn-icon-sm danger" data-del="' + escapeHtml(p.id) + '">🗑</button>' +
+        '<button type="button" class="btn-icon-sm" data-edit="' + escapeHtml(p.id) + '">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg>' +
+        '</button>' +
+        '<button type="button" class="btn-icon-sm danger" data-del="' + escapeHtml(p.id) + '">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M6 6l1 14h10l1-14"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>' +
+        '</button>' +
       '</div>' +
     '</div>';
   }
@@ -1852,8 +1872,12 @@ function renderEditorCategories() {
         '<div class="edit-row-sub">' + count + ' поз.</div>' +
       '</div>' +
       '<div class="edit-row-actions">' +
-        '<button type="button" class="btn-icon-sm" data-cedit="' + escapeHtml(c.id) + '">✏️</button>' +
-        '<button type="button" class="btn-icon-sm danger" data-cdel="' + escapeHtml(c.id) + '">🗑</button>' +
+        '<button type="button" class="btn-icon-sm" data-cedit="' + escapeHtml(c.id) + '">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg>' +
+        '</button>' +
+        '<button type="button" class="btn-icon-sm danger" data-cdel="' + escapeHtml(c.id) + '">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M6 6l1 14h10l1-14"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>' +
+        '</button>' +
       '</div>' +
     '</div>';
   }
@@ -1871,7 +1895,7 @@ function renderEditorCategories() {
 
 function saveProductFromForm() {
   var name = ($('prod-name').value || '').trim();
-  var price = parseFloat($('prod-price').value);
+  var price = toNum($('prod-price').value);
   var emoji = ($('prod-emoji').value || '').trim() || '☕';
   var category = $('prod-category').value;
 
