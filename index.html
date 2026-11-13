@@ -473,7 +473,8 @@ button{font-family:inherit;user-select:none;-webkit-user-select:none}
       </div>
       <div class="calc-row">
         <span class="calc-label">Наличными</span>
-        <input type="number" inputmode="numeric" id="checkout-cash" class="calc-input" placeholder="0" />
+        <input type="number" step="0.01" min="0" inputmode="decimal" id="checkout-cash" class="calc-input" placeholder="0" />
+        <input type="number" step="0.01" min="0" inputmode="decimal" id="checkout-card" class="calc-input" placeholder="0" />
       </div>
       <div class="calc-row" id="card-pay-row" style="display:none">
         <span class="calc-label">Картой</span>
@@ -517,7 +518,7 @@ button{font-family:inherit;user-select:none;-webkit-user-select:none}
       <div class="edit-form">
         <input type="text" id="prod-name" placeholder="Название позиции" autocomplete="off" />
         <div class="row2">
-          <input type="number" inputmode="decimal" id="prod-price" placeholder="Цена, Br" />
+          <input type="number" step="0.01" min="0" inputmode="decimal" id="prod-price" placeholder="Цена, Br" />
           <input type="text" id="prod-emoji" class="emoji-input" placeholder="☕" maxlength="3" />
         </div>
         <select id="prod-category"></select>
@@ -620,7 +621,8 @@ var PAYMENT_LABELS = { cash: 'Наличные', card: 'Карта', mixed: 'С�
 function $(id) { return document.getElementById(id); }
 
 function formatMoney(value) {
-  return Math.round(value).toLocaleString('ru-RU') + ' Br';
+  var rounded = Math.round((value || 0) * 100) / 100;
+  return rounded.toLocaleString('ru-RU') + ' Br';
 }
 
 function formatTime(ts) {
