@@ -1,5 +1,5 @@
 /* Coffee POS — service worker (офлайн-режим) */
-var CACHE = 'coffee-pos-v13';
+var CACHE = 'coffee-pos-v20';
 var ASSETS = [
   './',
   './index.html',

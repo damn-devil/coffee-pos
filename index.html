@@ -336,6 +336,54 @@ button{font-family:inherit;user-select:none;-webkit-user-select:none}
 .steps b{color:var(--text)}
 .steps a{color:var(--accent)}
 
+
+/* --- v2 additions --- */
+:root[data-theme="light"]{--bg:#f3f1ed;--surface:#ffffff;--surface-lift:#f7f5f1;--border:#ddd8cf;--text:#1a1a1a;--muted:#6f6a61;--accent:#8b6b3f;--accent2:#1a1a1a;--danger:#dc2626;--success:#16a34a;--warning:#d97706}
+:root[data-large="1"]{--base-font:18px}
+body{font-size:var(--base-font,16px)}
+.row{display:flex;gap:8px;align-items:center}.row.wrap{flex-wrap:wrap}
+.seg{display:flex;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.seg button{border:none;background:var(--surface-lift);color:var(--muted);padding:7px 10px;font-size:12px;font-weight:700}
+.seg button.active{background:var(--accent2);color:var(--bg)}
+:root[data-theme="light"] .seg button.active{background:var(--accent);color:#fff}
+.chip{padding:7px 10px;border:1px solid var(--border);border-radius:10px;background:var(--surface-lift);color:var(--text);font-size:13px;font-weight:700}
+.chip.active{background:var(--accent2);color:var(--bg);border-color:var(--accent2)}
+:root[data-theme="light"] .chip.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.products-grid.compact{grid-template-columns:repeat(3,1fr);gap:8px}
+.products-grid.large{grid-template-columns:repeat(2,1fr);gap:14px}
+.products-grid.compact .item-img{height:64px;font-size:24px}
+.products-grid.large .item-img{height:110px;font-size:42px}
+.product-card.unavailable{opacity:.45}
+.fav-star{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:11px;background:rgba(0,0,0,.45);color:#fbbf24;display:flex;align-items:center;justify-content:center;font-size:13px}
+.btn-small{padding:8px 10px;font-size:12px;border-radius:10px}
+.big-display{background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:10px 12px;margin-bottom:10px}
+.big-display .line{display:flex;justify-content:space-between;align-items:baseline;margin:4px 0}
+.big-display .lbl{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase}
+.big-display .val{font-size:24px;font-weight:900}
+.quick-amounts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.quick-amounts .chip{font-size:13px}
+.disc-row{display:flex;gap:8px;align-items:flex-end}
+.disc-row .form-row{flex:1;margin-bottom:0}
+.archive-list{display:flex;flex-direction:column;gap:8px}
+.archive-item{background:var(--surface-lift);border:1px solid var(--border);border-radius:12px;padding:12px}
+.archive-item h4{font-size:14px;margin-bottom:4px}
+.archive-item .meta{font-size:12px;color:var(--muted)}
+.archive-item .actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.settings-grid{display:flex;flex-direction:column;gap:10px}
+.setting-row{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--surface-lift);border:1px solid var(--border);border-radius:12px;padding:12px}
+.setting-row .title{font-weight:700;font-size:14px}.setting-row .sub{font-size:11px;color:var(--muted);margin-top:2px}
+.toggle{width:46px;height:28px;border-radius:14px;background:var(--border);position:relative;border:none;flex:0 0 auto}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:11px;background:#fff;transition:transform .2s}
+.toggle.on{background:var(--success)}.toggle.on::after{transform:translateX(18px)}
+.onboard{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:700;display:none;align-items:center;justify-content:center;padding:18px}
+.onboard.open{display:flex}
+.onboard-card{max-width:420px;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:18px}
+.onboard-card h3{margin-bottom:8px}.onboard-card ol{padding-left:18px;color:var(--muted);font-size:14px;line-height:1.6}
+.onboard-card li{margin:6px 0}
+.movement{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.movement:last-child{border-bottom:none}
+.btn-icon-sm.active{color:var(--warning);border-color:var(--warning)}
+
 </style>
 </head>
 <body>
@@ -343,9 +391,15 @@ button{font-family:inherit;user-select:none;-webkit-user-select:none}
 <header class="app-header">
   <div class="logo-group">
     <h1 class="app-title">☕ Coffee POS</h1>
-    <span class="app-version" id="app-version">v1.7.0</span>
+    <span class="app-version" id="app-version">v2.0.0</span>
   </div>
   <div class="header-actions">
+    <button class="icon-btn" id="settings-btn" title="Настройки" aria-label="Настройки">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1 1 0 0 0 .2 1.1l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1 1 0 0 0-1.1-.2 1 1 0 0 0-.6.9V20a2 2 0 1 1-4 0v-.1a1 1 0 0 0-.7-.9 1 1 0 0 0-1.1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1 1 0 0 0 .2-1.1 1 1 0 0 0-.9-.6H4a2 2 0 1 1 0-4h.1a1 1 0 0 0 .9-.7 1 1 0 0 0-.2-1.1l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1 1 0 0 0 1.1.2h.1a1 1 0 0 0 .6-.9V4a2 2 0 1 1 4 0v.1a1 1 0 0 0 .6.9 1 1 0 0 0 1.1-.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1 1 0 0 0-.2 1.1v.1a1 1 0 0 0 .9.6H20a2 2 0 1 1 0 4h-.1a1 1 0 0 0-.9.6z"></path>
+      </svg>
+    </button>
     <button class="icon-btn" id="editor-btn" title="Редактировать меню" aria-label="Редактировать меню">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17v3z"></path>
@@ -380,6 +434,14 @@ button{font-family:inherit;user-select:none;-webkit-user-select:none}
         </svg>
       </div>
     </div>
+    <div class="row wrap">
+      <div class="seg" id="grid-seg">
+        <button type="button" data-grid="compact">Компакт</button>
+        <button type="button" data-grid="normal" class="active">Обычн</button>
+        <button type="button" data-grid="large">Крупно</button>
+      </div>
+      <button type="button" class="chip" id="fav-filter-btn">★ Частое</button>
+    </div>
     <div class="category-tabs" id="category-tabs"></div>
     <div class="products-grid" id="products-grid"></div>
     <div class="empty-state" id="menu-empty" style="display:none">Товаров не найдено</div>
@@ -387,10 +449,11 @@ button{font-family:inherit;user-select:none;-webkit-user-select:none}
 
   <section id="view-shift" class="view">
     <div class="section-header">
-      <h2>Отчёт за смену</h2>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
-        <button class="btn-outline" id="shift-pdf" style="display:none">PDF</button>
-        <button class="btn-primary" id="shift-toggle">Открыть смену</button>
+      <h2>Смена</h2>
+      <div class="row wrap" style="justify-content:flex-end">
+        <button class="btn-outline btn-small" id="shift-xreport">X-отчёт</button>
+        <button class="btn-outline btn-small" id="shift-pdf" style="display:none">PDF</button>
+        <button class="btn-primary btn-small" id="shift-toggle">Открыть смену</button>
       </div>
     </div>
 
@@ -400,18 +463,9 @@ button{font-family:inherit;user-select:none;-webkit-user-select:none}
     </div>
 
     <div class="stats-row" id="shift-stats" style="display:none">
-      <div class="stat-card">
-        <div class="stat-value" id="shift-total">0 Br</div>
-        <div class="stat-label">Выручка</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value" id="shift-count">0</div>
-        <div class="stat-label">Чеков</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value" id="shift-items">0</div>
-        <div class="stat-label">Позиций</div>
-      </div>
+      <div class="stat-card"><div class="stat-value" id="shift-total">0 Br</div><div class="stat-label">Выручка</div></div>
+      <div class="stat-card"><div class="stat-value" id="shift-count">0</div><div class="stat-label">Чеков</div></div>
+      <div class="stat-card"><div class="stat-value" id="shift-items">0</div><div class="stat-label">Позиций</div></div>
     </div>
 
     <div id="shift-payments-wrap" style="display:none">
@@ -423,6 +477,15 @@ button{font-family:inherit;user-select:none;-webkit-user-select:none}
       </div>
     </div>
 
+    <div id="shift-movements-wrap" style="display:none">
+      <div class="block-title">Движения наличных</div>
+      <div class="card-block" id="shift-movements" style="padding:8px 12px"></div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn-outline btn-small" id="cash-in-btn">+ Внесение</button>
+        <button class="btn-outline btn-small" id="cash-out-btn">− Изъятие</button>
+      </div>
+    </div>
+
     <div id="shift-summary-wrap" style="display:none">
       <div class="block-title" style="margin-bottom:8px">Продано по позициям</div>
       <div class="sum-list" id="shift-summary"></div>
@@ -431,6 +494,11 @@ button{font-family:inherit;user-select:none;-webkit-user-select:none}
     <div id="shift-receipts-wrap" style="display:none">
       <div class="block-title" style="margin-bottom:8px">Чеки</div>
       <div id="shift-sales-list"></div>
+    </div>
+
+    <div id="shift-archive-wrap">
+      <div class="block-title" style="margin-bottom:8px">Архив смен (на устройстве)</div>
+      <div class="archive-list" id="shift-archive-list"></div>
     </div>
   </section>
 </main>
@@ -474,23 +542,30 @@ button{font-family:inherit;user-select:none;-webkit-user-select:none}
       <span style="width:42px"></span>
     </div>
 
+    <div class="big-display" id="big-display">
+      <div class="line"><span class="lbl">К оплате</span><span class="val" id="big-total">0 Br</span></div>
+      <div class="line"><span class="lbl">Внесено</span><span class="val" id="big-paid">0 Br</span></div>
+      <div class="line"><span class="lbl">Сдача</span><span class="val" id="big-change">0 Br</span></div>
+    </div>
+
     <div class="checkout-summary" id="checkout-summary"></div>
+
+    <div class="disc-row">
+      <div class="form-row"><label for="checkout-discount-type">Скидка</label><select id="checkout-discount-type"><option value="none">Нет</option><option value="sum">Br</option><option value="percent">%</option></select></div>
+      <div class="form-row"><label for="checkout-discount-value">Значение</label><input type="text" inputmode="decimal" id="checkout-discount-value" placeholder="0" /></div>
+    </div>
 
     <div class="form-row">
       <label for="checkout-payment">Способ оплаты</label>
       <select id="checkout-payment">
         <option value="cash">Наличные</option>
         <option value="card">Карта</option>
-        <option value="mixed">Смешанный (наличные + карта)</option>
+        <option value="mixed">Смешанный</option>
       </select>
     </div>
 
     <div class="calc-card" id="cash-row">
-      <div class="calc-title">Калькулятор сдачи</div>
-      <div class="calc-row">
-        <span class="calc-label">К оплате</span>
-        <span class="calc-big" id="calc-total">0 Br</span>
-      </div>
+      <div class="calc-title">Наличные / сдача</div>
       <div class="calc-row">
         <span class="calc-label">Наличными</span>
         <input type="text" inputmode="decimal" id="checkout-cash" class="calc-input" placeholder="0" />
@@ -499,10 +574,7 @@ button{font-family:inherit;user-select:none;-webkit-user-select:none}
         <span class="calc-label">Картой</span>
         <input type="text" inputmode="decimal" id="checkout-card" class="calc-input" placeholder="0" />
       </div>
-      <div class="calc-row">
-        <span class="calc-label">Сдача</span>
-        <span class="calc-big calc-success" id="calc-change">0 Br</span>
-      </div>
+      <div class="quick-amounts" id="quick-amounts"></div>
     </div>
 
     <div class="modal-actions" style="margin-top:20px">
@@ -546,8 +618,15 @@ button{font-family:inherit;user-select:none;-webkit-user-select:none}
           </div>
         </div>
         <select id="prod-category"></select>
+        <div class="row wrap">
+          <label class="row" style="font-size:13px;color:var(--muted)"><input type="checkbox" id="prod-available" checked /> В наличии</label>
+          <label class="row" style="font-size:13px;color:var(--muted)"><input type="checkbox" id="prod-favorite" /> ★ Частое</label>
+        </div>
         <button class="btn-primary" id="prod-save">Добавить позицию</button>
-        <button class="btn-outline" id="prod-cancel" style="display:none">Отменить редактирование</button>
+        <div class="row" style="gap:8px">
+          <button class="btn-outline" id="prod-cancel" style="display:none;flex:1">Отменить</button>
+          <button class="btn-outline" id="prod-copy" style="display:none;flex:1">Копировать</button>
+        </div>
       </div>
       <div class="edit-toolbar">
         <input type="text" id="editor-prod-search" placeholder="Поиск позиции..." autocomplete="off" />
@@ -594,7 +673,7 @@ button{font-family:inherit;user-select:none;-webkit-user-select:none}
   <div class="modal-content">
     <div class="modal-header">
       <span style="width:42px"></span>
-      <h2 id="shift-modal-title">Закрыть смену?</h2>
+      <h2 id="shift-modal-title">Смена</h2>
       <span style="width:42px"></span>
     </div>
     <div class="checkout-summary" id="shift-modal-body"></div>
@@ -602,14 +681,38 @@ button{font-family:inherit;user-select:none;-webkit-user-select:none}
   </div>
 </div>
 
+<div class="modal" id="settings-modal">
+  <div class="modal-content">
+    <div class="modal-header"><span style="width:42px"></span><h2>Настройки</h2><button class="icon-btn" id="settings-close" aria-label="Закрыть"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button></div>
+    <div class="settings-grid">
+      <div class="setting-row"><div><div class="title">Светлая тема</div><div class="sub">Удобнее при ярком свете</div></div><button class="toggle" id="set-theme" aria-label="Тема"></button></div>
+      <div class="setting-row"><div><div class="title">Крупный текст</div><div class="sub">Больше шрифты и элементы</div></div><button class="toggle" id="set-large" aria-label="Крупный текст"></button></div>
+      <div class="setting-row"><div><div class="title">Звук и вибрация</div><div class="sub">Отклик при действиях</div></div><button class="toggle" id="set-sound" aria-label="Звук"></button></div>
+      <div class="setting-row"><div><div class="title">PIN редактора</div><div class="sub">4 цифры, пусто — без PIN</div></div><input id="set-pin" type="password" inputmode="numeric" maxlength="4" placeholder="----" style="width:90px;text-align:center;padding:8px;border:1px solid var(--border);border-radius:10px;background:var(--bg);color:var(--text)" /></div>
+      <div class="card-block">
+        <div class="block-title" style="margin-top:0">Резерв и экспорт</div>
+        <div class="row wrap">
+          <button class="btn-outline btn-small" id="export-json">Экспорт JSON</button>
+          <button class="btn-outline btn-small" id="export-csv">Экспорт CSV</button>
+          <label class="btn-outline btn-small" for="import-json" style="cursor:pointer;margin:0">Импорт JSON</label>
+          <input type="file" id="import-json" accept="application/json,.json" style="display:none" />
+        </div>
+        <div class="hint">Продажи, архив смен и меню сохраняются локально на этом устройстве. Для общей базы продаж между несколькими телефонами нужен внешний сервис (Firebase/Supabase) — используйте экспорт/импорт для бэкапа и переноса.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="onboard" id="onboard"><div class="onboard-card"><h3>Быстрый старт</h3><ol><li>Откройте <b>смену</b> и добавляйте товары в корзину.</li><li>Оплата: быстрые суммы, скидка, калькулятор сдачи.</li><li>В меню: фото, ★ частое, «нет в наличии», копирование позиции.</li><li>Отчёт/X-отчёт/PDF и архив смен — во вкладке «Смена». Резерв — в настройках.</li></ol><div class="modal-actions" style="margin-top:14px"><button class="btn-primary" id="onboard-close" style="flex:1">Понятно</button></div></div></div>
+
 <div class="toast" id="toast">Готово</div>
 
 <script>
 var STORAGE_KEY = 'coffee_pos_data';
 var MENU_CACHE_KEY = 'coffee_pos_menu';
 var MENU_DIRTY_KEY = 'coffee_pos_menu_dirty';
-var GH_KEY = 'coffee_pos_github';
-var APP_VERSION = '1.7.0';
+var SETTINGS_KEY = 'coffee_pos_settings';
+var APP_VERSION = '2.0.0';
 var MENU_FILE = 'menu.json';
 
 var state = {
@@ -617,14 +720,18 @@ var state = {
   products: [],
   cart: [],
   sales: [],
-  shift: { open: false, openedAt: null, closedAt: null, id: null },
+  shift: { open: false, openedAt: null, closedAt: null, id: null, movements: [] },
+  shiftArchive: [],
   activeCategory: 'all',
+  favFilter: false,
   editingProductId: null,
   editingCategoryId: null,
   editorTab: 'products',
   productImageDraft: '',
   editorProductCat: 'all',
-  editorProductSearch: ''
+  editorProductSearch: '',
+  checkoutDiscount: { type: 'none', value: 0 },
+  settings: { theme: 'dark', grid: 'normal', largeText: false, sound: true, pin: '', onboardingDone: false }
 };
 
 var DEFAULT_MENU = {
@@ -744,6 +851,59 @@ function readImageFile(file, cb) {
 }
 
 
+function beep(freq, dur) {
+  try {
+    if (!state.settings.sound) return;
+    var Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    beep._ctx = beep._ctx || new Ctx();
+    var ctx = beep._ctx;
+    if (ctx.state === 'suspended') ctx.resume();
+    var o = ctx.createOscillator();
+    var g = ctx.createGain();
+    o.type = 'sine'; o.frequency.value = freq || 880;
+    g.gain.value = 0.04;
+    o.connect(g); g.connect(ctx.destination);
+    o.start();
+    setTimeout(function(){ try{o.stop()}catch(e){} }, dur || 70);
+  } catch(e){}
+}
+function haptic(ms){ try{ if (state.settings.sound && navigator.vibrate) navigator.vibrate(ms||15); }catch(e){} }
+function feedback(kind){
+  if (kind === 'ok'){ beep(880,70); haptic(12); }
+  else if (kind === 'pay'){ beep(660,60); setTimeout(function(){beep(990,90)},80); haptic([10,30,20]); }
+  else { beep(520,40); haptic(8); }
+}
+
+function applySettings(){
+  var root = document.documentElement;
+  root.setAttribute('data-theme', state.settings.theme || 'dark');
+  root.setAttribute('data-large', state.settings.largeText ? '1' : '0');
+  var meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', state.settings.theme === 'light' ? '#f3f1ed' : '#0a0a0a');
+  var grid = state.settings.grid || 'normal';
+  var g = document.getElementById('products-grid');
+  if (g){ g.classList.remove('compact','large'); if(grid!=='normal') g.classList.add(grid); }
+  var seg = document.querySelectorAll('#grid-seg button');
+  for (var i=0;i<seg.length;i++) seg[i].classList.toggle('active', seg[i].getAttribute('data-grid')===grid);
+  var t = $('set-theme'); if (t) t.classList.toggle('on', state.settings.theme==='light');
+  var l = $('set-large'); if (l) l.classList.toggle('on', !!state.settings.largeText);
+  var snd = $('set-sound'); if (snd) snd.classList.toggle('on', state.settings.sound!==false);
+  var pin = $('set-pin'); if (pin) pin.value = state.settings.pin || '';
+  var fav = $('fav-filter-btn'); if (fav) fav.classList.toggle('active', !!state.favFilter);
+}
+
+function downloadBlob(blob, filename){
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a'); a.href = url; a.download = filename; a.rel='noopener';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
+}
+function downloadText(text, filename, type){
+  downloadBlob(new Blob([text], {type: type||'text/plain;charset=utf-8'}), filename);
+}
+
+
 /* ---------------- данные ---------------- */
 
 function readJson(key) {
@@ -760,28 +920,53 @@ function writeJson(key, value) {
 function loadStoredData() {
   try {
     var raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
-    var data = JSON.parse(raw);
-    if (Array.isArray(data.sales)) state.sales = data.sales;
-    if (data.shift && typeof data.shift === 'object') {
-      state.shift = {
-        open: !!data.shift.open,
-        openedAt: data.shift.openedAt || null,
-        closedAt: data.shift.closedAt || null,
-        id: data.shift.id || null
-      };
+    if (raw) {
+      var data = JSON.parse(raw);
+      if (Array.isArray(data.sales)) state.sales = data.sales;
+      if (Array.isArray(data.shiftArchive)) state.shiftArchive = data.shiftArchive;
+      if (data.shift && typeof data.shift === 'object') {
+        state.shift = {
+          open: !!data.shift.open,
+          openedAt: data.shift.openedAt || null,
+          closedAt: data.shift.closedAt || null,
+          id: data.shift.id || null,
+          movements: Array.isArray(data.shift.movements) ? data.shift.movements : []
+        };
+      }
     }
   } catch (err) {
     console.warn('Не удалось прочитать сохранённые данные', err);
   }
+  try {
+    var sraw = localStorage.getItem(SETTINGS_KEY);
+    if (sraw) {
+      var st = JSON.parse(sraw);
+      if (st && typeof st === 'object') {
+        state.settings.theme = st.theme === 'light' ? 'light' : 'dark';
+        state.settings.grid = (st.grid === 'compact' || st.grid === 'large') ? st.grid : 'normal';
+        state.settings.largeText = !!st.largeText;
+        state.settings.sound = st.sound !== false;
+        state.settings.pin = String(st.pin || '');
+        state.settings.onboardingDone = !!st.onboardingDone;
+      }
+    }
+  } catch (e) {}
 }
 
 function saveData() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ sales: state.sales, shift: state.shift }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      sales: state.sales,
+      shift: state.shift,
+      shiftArchive: state.shiftArchive.slice(-30)
+    }));
   } catch (err) {
     console.warn('Не удалось сохранить данные', err);
   }
+}
+
+function saveSettings() {
+  try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings)); } catch (e) {}
 }
 
 function sortMenu() {
@@ -875,6 +1060,78 @@ function syncAppHeight() {
   if (height) document.documentElement.style.setProperty('--app-h', height + 'px');
 }
 
+function exportAllJson() {
+  var payload = {
+    exportedAt: new Date().toISOString(),
+    app: 'coffee-pos',
+    version: APP_VERSION,
+    menu: { categories: state.categories, products: state.products },
+    sales: state.sales,
+    shift: state.shift,
+    shiftArchive: state.shiftArchive,
+    settings: state.settings
+  };
+  downloadText(JSON.stringify(payload, null, 2), 'coffee-pos-backup.json', 'application/json');
+  showToast('Экспорт JSON сохранён');
+}
+
+function exportAllCsv() {
+  var rows = [['type','shift_id','date','sale_id','payment','item','qty','price','line_total','discount','sale_total']];
+  function addShiftSales(shiftId, sales){
+    for (var i=0;i<(sales||[]).length;i++){
+      var sl=sales[i];
+      for (var j=0;j<(sl.items||[]).length;j++){
+        var it=sl.items[j];
+        rows.push(['sale', shiftId, new Date(sl.time).toISOString(), sl.id, sl.payment, it.name, it.qty, it.price, it.price*it.qty, sl.discount||0, sl.total]);
+      }
+    }
+  }
+  addShiftSales(state.shift.id, shiftSales());
+  for (var a=0;a<(state.shiftArchive||[]).length;a++) addShiftSales(state.shiftArchive[a].id, state.shiftArchive[a].sales||[]);
+  var csv = rows.map(function(r){ return r.map(function(v){ var t=String(v==null?'':v); return '"'+t.replace(/"/g,'""')+'"'; }).join(';'); }).join('\n');
+  downloadText('\uFEFF'+csv, 'coffee-pos-sales.csv', 'text/csv;charset=utf-8');
+  showToast('CSV сохранён');
+}
+
+function importJsonFile(file) {
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    try {
+      var data = JSON.parse(e.target.result);
+      if (!data || typeof data !== 'object') throw new Error('bad');
+      if (data.menu && Array.isArray(data.menu.products)) { applyMenu(data.menu); cacheMenu(); markDirty(); }
+      if (Array.isArray(data.sales)) state.sales = data.sales;
+      if (Array.isArray(data.shiftArchive)) state.shiftArchive = data.shiftArchive;
+      if (data.shift && typeof data.shift === 'object') state.shift = {
+        open: !!data.shift.open, openedAt: data.shift.openedAt||null, closedAt: data.shift.closedAt||null, id: data.shift.id||null,
+        movements: Array.isArray(data.shift.movements)?data.shift.movements:[]
+      };
+      if (data.settings && typeof data.settings === 'object') {
+        state.settings.theme = data.settings.theme === 'light' ? 'light' : 'dark';
+        state.settings.grid = (['compact','large'].indexOf(data.settings.grid)>=0)?data.settings.grid:'normal';
+        state.settings.largeText = !!data.settings.largeText;
+        state.settings.sound = data.settings.sound !== false;
+        state.settings.pin = String(data.settings.pin||'');
+      }
+      saveData(); saveSettings(); applySettings();
+      renderCategories(); renderProducts(); renderCart(); renderShift(); renderEditor();
+      syncPush();
+      showToast('Данные импортированы');
+    } catch(err) { showToast('Не удалось импортировать файл'); }
+  };
+  reader.readAsText(file);
+}
+
+function openEditorGuarded() {
+  if (state.settings.pin) {
+    var p = window.prompt('Введите PIN редактора', '');
+    if (p === null) return;
+    if (String(p) !== String(state.settings.pin)) { showToast('Неверный PIN'); return; }
+  }
+  openEditor();
+}
+
 function init() {
   syncAppHeight();
   loadStoredData();
@@ -883,6 +1140,7 @@ function init() {
   var versionEl = $('app-version');
   if (versionEl) versionEl.textContent = 'v' + APP_VERSION;
 
+  applySettings();
   renderCategories();
   renderProducts();
   renderCart();
@@ -892,34 +1150,26 @@ function init() {
   setupListeners();
   startSync();
 
+  if (!state.settings.onboardingDone) {
+    var ob = $('onboard'); if (ob) ob.classList.add('open');
+  }
+
   window.addEventListener('resize', syncAppHeight);
-  window.addEventListener('orientationchange', function () {
-    setTimeout(syncAppHeight, 300);
-  });
+  window.addEventListener('orientationchange', function () { setTimeout(syncAppHeight, 300); });
 }
 
 function setupListeners() {
   var tabs = document.querySelectorAll('.tab-nav > .tab-btn');
-  for (var i = 0; i < tabs.length; i++) {
-    tabs[i].addEventListener('click', function () {
-      switchTab(this.getAttribute('data-tab'));
-    });
-  }
+  for (var i = 0; i < tabs.length; i++) tabs[i].addEventListener('click', function () { switchTab(this.getAttribute('data-tab')); });
 
   var editTabs = document.querySelectorAll('.edit-tabs .tab-btn');
-  for (var j = 0; j < editTabs.length; j++) {
-    editTabs[j].addEventListener('click', function () {
-      switchEditorTab(this.getAttribute('data-etab'));
-    });
-  }
+  for (var j = 0; j < editTabs.length; j++) editTabs[j].addEventListener('click', function () { switchEditorTab(this.getAttribute('data-etab')); });
 
   $('menu-search').addEventListener('input', renderProducts);
 
-  $('editor-btn').onclick = openEditor;
+  $('editor-btn').onclick = openEditorGuarded;
   $('editor-close').onclick = closeEditor;
-  $('editor-modal').addEventListener('click', function (e) {
-    if (e.target === this) closeEditor();
-  });
+  $('editor-modal').addEventListener('click', function (e) { if (e.target === this) closeEditor(); });
 
   $('cart-btn').onclick = openCart;
   $('cart-back').onclick = closeCart;
@@ -930,12 +1180,10 @@ function setupListeners() {
   $('checkout-back').onclick = closeCheckout;
   $('checkout-cancel').onclick = closeCheckout;
   $('checkout-confirm').onclick = confirmCheckout;
-  $('checkout-modal').addEventListener('click', function (e) {
-    if (e.target === this) closeCheckout();
-  });
+  $('checkout-modal').addEventListener('click', function (e) { if (e.target === this) closeCheckout(); });
 
   $('checkout-payment').addEventListener('change', onPaymentChange);
-  var moneyIds = ['checkout-cash', 'checkout-card', 'prod-price'];
+  var moneyIds = ['checkout-cash', 'checkout-card', 'prod-price', 'checkout-discount-value'];
   for (var mi = 0; mi < moneyIds.length; mi++) {
     (function (id) {
       var el = document.getElementById(id);
@@ -944,33 +1192,26 @@ function setupListeners() {
         var v = String(e.target.value == null ? '' : e.target.value).replace(',', '.');
         var n = parseFloat(v);
         e.target.value = isNaN(n) ? '' : v;
-        if (id === 'checkout-cash' || id === 'checkout-card') calcChange();
+        if (id === 'checkout-cash' || id === 'checkout-card' || id === 'checkout-discount-value') calcChange();
       });
     })(moneyIds[mi]);
   }
+  var discType = $('checkout-discount-type');
+  if (discType) discType.addEventListener('change', function(){ calcChange(); });
 
   var prodImageInput = $('prod-image');
-  if (prodImageInput) {
-    prodImageInput.addEventListener('change', function (e) {
-      var file = e.target.files && e.target.files[0];
-      if (!file) return;
-      readImageFile(file, function (dataUrl) {
-        if (dataUrl === null) return;
-        setProductImagePreview(dataUrl);
-      });
-    });
-  }
+  if (prodImageInput) prodImageInput.addEventListener('change', function (e) {
+    var file = e.target.files && e.target.files[0];
+    if (!file) return;
+    readImageFile(file, function (dataUrl) { if (dataUrl === null) return; setProductImagePreview(dataUrl); });
+  });
   var prodImageRemove = $('prod-image-remove');
-  if (prodImageRemove) {
-    prodImageRemove.addEventListener('click', function () {
-      setProductImagePreview('');
-      if ($('prod-image')) $('prod-image').value = '';
-    });
-  }
+  if (prodImageRemove) prodImageRemove.addEventListener('click', function () { setProductImagePreview(''); if ($('prod-image')) $('prod-image').value = ''; });
   $('checkout-cash').addEventListener('focus', function () { this.select(); });
 
   $('prod-save').addEventListener('click', saveProductFromForm);
   $('prod-cancel').addEventListener('click', resetProductForm);
+  var copyBtn = $('prod-copy'); if (copyBtn) copyBtn.addEventListener('click', copyCurrentProduct);
   $('cat-save').addEventListener('click', saveCategoryFromForm);
   $('cat-cancel').addEventListener('click', resetCategoryForm);
 
@@ -978,26 +1219,36 @@ function setupListeners() {
   $('sync-push').addEventListener('click', function () { syncPush(); });
 
   var epSearch = $('editor-prod-search');
-  if (epSearch) {
-    epSearch.addEventListener('input', function () {
-      state.editorProductSearch = epSearch.value || '';
-      renderEditorProducts();
-    });
-  }
+  if (epSearch) epSearch.addEventListener('input', function () { state.editorProductSearch = epSearch.value || ''; renderEditorProducts(); });
   var epFilter = $('editor-prod-filter-cat');
-  if (epFilter) {
-    epFilter.addEventListener('change', function () {
-      state.editorProductCat = epFilter.value || 'all';
-      renderEditorProducts();
-    });
-  }
+  if (epFilter) epFilter.addEventListener('change', function () { state.editorProductCat = epFilter.value || 'all'; renderEditorProducts(); });
 
   $('shift-toggle').addEventListener('click', toggleShift);
   $('shift-pdf').addEventListener('click', saveShiftPdf);
-  $('shift-modal').addEventListener('click', function (e) {
-    if (e.target === this) closeShiftModal();
-  });
+  var xrep = $('shift-xreport'); if (xrep) xrep.addEventListener('click', showXReport);
+  var cin = $('cash-in-btn'); if (cin) cin.addEventListener('click', function(){ addCashMovement('in'); });
+  var cout = $('cash-out-btn'); if (cout) cout.addEventListener('click', function(){ addCashMovement('out'); });
+  $('shift-modal').addEventListener('click', function (e) { if (e.target === this) closeShiftModal(); });
+
+  var setBtn = $('settings-btn'); if (setBtn) setBtn.addEventListener('click', function(){ applySettings(); $('settings-modal').classList.add('open'); });
+  var setClose = $('settings-close'); if (setClose) setClose.addEventListener('click', function(){ $('settings-modal').classList.remove('open'); saveSettings(); });
+  var setModal = $('settings-modal'); if (setModal) setModal.addEventListener('click', function(e){ if(e.target===this){ this.classList.remove('open'); saveSettings(); } });
+  var tglTheme = $('set-theme'); if (tglTheme) tglTheme.addEventListener('click', function(){ state.settings.theme = state.settings.theme==='light'?'dark':'light'; saveSettings(); applySettings(); });
+  var tglLarge = $('set-large'); if (tglLarge) tglLarge.addEventListener('click', function(){ state.settings.largeText = !state.settings.largeText; saveSettings(); applySettings(); });
+  var tglSound = $('set-sound'); if (tglSound) tglSound.addEventListener('click', function(){ state.settings.sound = !state.settings.sound; saveSettings(); applySettings(); feedback('ok'); });
+  var pinIn = $('set-pin'); if (pinIn) pinIn.addEventListener('input', function(){ state.settings.pin = (pinIn.value||'').replace(/\D/g,'').slice(0,4); pinIn.value = state.settings.pin; saveSettings(); });
+
+  var exj = $('export-json'); if (exj) exj.addEventListener('click', exportAllJson);
+  var exc = $('export-csv'); if (exc) exc.addEventListener('click', exportAllCsv);
+  var imj = $('import-json'); if (imj) imj.addEventListener('change', function(e){ var f=e.target.files&&e.target.files[0]; e.target.value=''; importJsonFile(f); });
+
+  var segBtns = document.querySelectorAll('#grid-seg button');
+  for (var gi=0; gi<segBtns.length; gi++) segBtns[gi].addEventListener('click', function(){ state.settings.grid = this.getAttribute('data-grid')||'normal'; saveSettings(); applySettings(); renderProducts(); });
+  var favBtn = $('fav-filter-btn'); if (favBtn) favBtn.addEventListener('click', function(){ state.favFilter = !state.favFilter; applySettings(); renderProducts(); });
+
+  var obClose = $('onboard-close'); if (obClose) obClose.addEventListener('click', function(){ state.settings.onboardingDone = true; saveSettings(); $('onboard').classList.remove('open'); });
 }
+
 
 function switchTab(tab) {
   var tabs = document.querySelectorAll('.tab-nav > .tab-btn');
@@ -1038,12 +1289,17 @@ function renderProducts() {
   var search = ($('menu-search').value || '').toLowerCase().trim();
   var grid = $('products-grid');
   var visible = [];
+  var gridMode = state.settings.grid || 'normal';
+  grid.className = 'products-grid' + (gridMode !== 'normal' ? ' ' + gridMode : '');
 
   for (var i = 0; i < state.products.length; i++) {
     var p = state.products[i];
+    if (p.available === false && search === '' && !state.favFilter) { /* still show but marked */ }
     var matchCat = state.activeCategory === 'all' || p.category === state.activeCategory;
+    var matchFav = !state.favFilter || !!p.favorite;
     var haystack = ((p.name || '') + ' ' + (p.desc || '')).toLowerCase();
-    if (matchCat && (search === '' || haystack.indexOf(search) >= 0)) visible.push(p);
+    var matchSearch = search === '' || haystack.indexOf(search) >= 0;
+    if (matchCat && matchFav && matchSearch) visible.push(p);
   }
 
   if (!visible.length) {
@@ -1059,11 +1315,15 @@ function renderProducts() {
   var out = '';
   for (var j = 0; j < visible.length; j++) {
     var item = visible[j];
-    out += '<button type="button" class="product-card" data-id="' + escapeHtml(item.id) + '">' +
-      productVisual(item, 'item-img') +
+    var unav = item.available === false;
+    var cls = 'product-card' + (unav ? ' unavailable' : '');
+    var fav = item.favorite ? '<span class="fav-star">★</span>' : '';
+    var sub = unav ? '<span class="item-cat" style="color:var(--danger)">Нет в наличии</span>' : '<span class="item-cat">' + escapeHtml(categoryName(item.category)) + '</span>';
+    out += '<button type="button" class="' + cls + '" data-id="' + escapeHtml(item.id) + '">' +
+      fav + productVisual(item, 'item-img') +
       '<div class="item-info">' +
         '<span class="item-name">' + escapeHtml(item.name) + '</span>' +
-        '<span class="item-cat">' + escapeHtml(categoryName(item.category)) + '</span>' +
+        sub +
         '<span class="item-price">' + formatMoney(item.price) + '</span>' +
       '</div>' +
     '</button>';
@@ -1083,6 +1343,7 @@ function renderProducts() {
 function addToCart(productId) {
   var product = getProduct(productId);
   if (!product) return;
+  if (product.available === false) { showToast('Позиция недоступна'); return; }
 
   var existing = null;
   for (var j = 0; j < state.cart.length; j++) {
@@ -1101,6 +1362,7 @@ function addToCart(productId) {
       qty: 1
     });
   }
+  feedback('ok');
   renderCart();
   showToast(product.name + ' добавлен');
 }
@@ -1127,6 +1389,7 @@ function changeQty(productId, delta) {
 
 function clearCart() {
   if (!state.cart.length) return;
+  if (!window.confirm('Очистить корзину?')) return;
   state.cart = [];
   renderCart();
   showToast('Корзина очищена');
@@ -1204,40 +1467,88 @@ function closeCart() {
 
 /* ---------------- оплата ---------------- */
 
+function checkoutCalc() {
+  var subtotal = cartTotal();
+  var dtype = ($('checkout-discount-type') && $('checkout-discount-type').value) || 'none';
+  var dval = toNum($('checkout-discount-value') && $('checkout-discount-value').value);
+  var discount = 0;
+  if (dtype === 'percent') discount = subtotal * Math.max(0, Math.min(100, dval)) / 100;
+  else if (dtype === 'sum') discount = Math.max(0, dval);
+  discount = Math.min(discount, subtotal);
+  discount = Math.round(discount * 100) / 100;
+  var total = Math.round((subtotal - discount) * 100) / 100;
+  var payment = ($('checkout-payment') && $('checkout-payment').value) || 'cash';
+  var cash = toNum($('checkout-cash') && $('checkout-cash').value);
+  var card = toNum($('checkout-card') && $('checkout-card').value);
+  var paid = payment === 'cash' ? cash : (payment === 'card' ? total : cash + card);
+  var change = Math.max(0, Math.round((paid - total) * 100) / 100);
+  var due = Math.max(0, Math.round((total - paid) * 100) / 100);
+  return { subtotal: subtotal, discount: discount, discountType: dtype, discountValue: dval, total: total, payment: payment, cash: cash, card: card, paid: paid, change: change, due: due };
+}
+
+function renderQuickAmounts(total) {
+  var wrap = $('quick-amounts');
+  if (!wrap) return;
+  var amounts = [];
+  function add(v){ if (v > 0 && amounts.indexOf(v) === -1) amounts.push(v); }
+  add(total);
+  [5,10,20,50,100,200].forEach(add);
+  add(Math.ceil(total/5)*5);
+  add(Math.ceil(total/10)*10);
+  amounts = amounts.sort(function(a,b){return a-b}).slice(0,8);
+  var html = '<button type="button" class="chip primary" data-qa="exact">Ровно</button>';
+  for (var i=0;i<amounts.length;i++) html += '<button type="button" class="chip" data-qa="'+amounts[i]+'">'+formatMoney(amounts[i])+'</button>';
+  wrap.innerHTML = html;
+  var btns = wrap.querySelectorAll('[data-qa]');
+  for (var j=0;j<btns.length;j++) btns[j].addEventListener('click', function(){
+    var v = this.getAttribute('data-qa');
+    var c = checkoutCalc();
+    if (v === 'exact') $('checkout-cash').value = c.total;
+    else $('checkout-cash').value = v;
+    calcChange();
+  });
+}
+
 function openCheckout() {
   if (!state.cart.length) { showToast('Корзина пуста'); return; }
 
-  var total = cartTotal();
-  renderCheckoutSummary(total);
-
+  $('checkout-discount-type').value = 'none';
+  $('checkout-discount-value').value = '';
   $('checkout-payment').value = 'cash';
-  $('checkout-cash').value = total;
+  $('checkout-cash').value = cartTotal();
   $('checkout-card').value = '';
 
   closeCart();
   $('checkout-modal').classList.add('open');
   onPaymentChange();
+  renderCheckoutSummary();
+  renderQuickAmounts(cartTotal());
+  calcChange();
 }
 
 function closeCheckout() {
   $('checkout-modal').classList.remove('open');
 }
 
-function renderCheckoutSummary(total) {
+function renderCheckoutSummary() {
+  var c = checkoutCalc();
   var html = '';
   for (var i = 0; i < state.cart.length; i++) {
     var it = state.cart[i];
     html += '<div class="row"><span>' + escapeHtml(it.name) + ' × ' + it.qty + '</span>' +
       '<span>' + formatMoney(it.price * it.qty) + '</span></div>';
   }
-  html += '<div class="total"><span>Итого</span><span>' + formatMoney(total) + '</span></div>';
+  if (c.discount > 0) {
+    html += '<div class="row" style="color:var(--success)"><span>Скидка</span><span>− ' + formatMoney(c.discount) + '</span></div>';
+  }
+  html += '<div class="total"><span>К оплате</span><span>' + formatMoney(c.total) + '</span></div>';
   $('checkout-summary').innerHTML = html;
-  $('calc-total').textContent = formatMoney(total);
+  var bt = $('big-total'); if (bt) bt.textContent = formatMoney(c.total);
 }
 
 function onPaymentChange() {
   var payment = $('checkout-payment').value;
-  var total = cartTotal();
+  var c = checkoutCalc();
 
   if (payment === 'card') {
     $('cash-row').style.display = 'none';
@@ -1247,97 +1558,89 @@ function onPaymentChange() {
   } else if (payment === 'mixed') {
     $('cash-row').style.display = 'block';
     $('card-pay-row').style.display = 'flex';
-    if (!$('checkout-cash').value) $('checkout-cash').value = '';
-    if (!$('checkout-card').value) $('checkout-card').value = '';
   } else {
     $('cash-row').style.display = 'block';
     $('card-pay-row').style.display = 'none';
     $('checkout-card').value = '';
-    if (!$('checkout-cash').value) $('checkout-cash').value = total;
+    if (!$('checkout-cash').value) $('checkout-cash').value = c.total;
   }
+  renderCheckoutSummary();
+  renderQuickAmounts(c.total);
   calcChange();
 }
 
 function calcChange() {
-  var total = cartTotal();
-  var payment = $('checkout-payment').value;
-  var cash = toNum($('checkout-cash').value);
-  var card = toNum($('checkout-card').value);
-  var paid;
-
-  if (payment === 'cash') paid = cash;
-  else if (payment === 'card') paid = total;
-  else paid = cash + card;
-
-  var changeEl = $('calc-change');
-  var diff = paid - total;
-
-  if (diff < 0) {
-    changeEl.style.color = 'var(--danger)';
-    changeEl.textContent = 'Не хватает ' + formatMoney(Math.abs(diff));
-  } else {
-    changeEl.style.color = 'var(--success)';
-    changeEl.textContent = formatMoney(diff);
+  var c = checkoutCalc();
+  var bc = $('big-change');
+  var bp = $('big-paid');
+  if (bp) bp.textContent = formatMoney(c.paid);
+  if (bc) {
+    if (c.due > 0.001) { bc.style.color = 'var(--danger)'; bc.textContent = 'Не хватает ' + formatMoney(c.due); }
+    else { bc.style.color = 'var(--success)'; bc.textContent = formatMoney(c.change); }
   }
+  renderCheckoutSummary();
 }
 
 function confirmCheckout() {
   if (!state.cart.length) { showToast('Корзина пуста'); return; }
 
-  var total = cartTotal();
-  var payment = $('checkout-payment').value;
-  var cash = toNum($('checkout-cash').value);
-  var card = toNum($('checkout-card').value);
-
+  var c = checkoutCalc();
   var cashPart = 0;
   var cardPart = 0;
 
-  if (payment === 'cash') {
-    if (cash < total) { showToast('Недостаточно наличных'); return; }
-    cashPart = total;
-  } else if (payment === 'card') {
-    cardPart = total;
+  if (c.payment === 'cash') {
+    if (c.paid + 0.001 < c.total) { showToast('Недостаточно наличных'); return; }
+    cashPart = c.total;
+  } else if (c.payment === 'card') {
+    cardPart = c.total;
   } else {
-    if (cash + card < total) { showToast('Наличные + карта меньше суммы'); return; }
-    if (cash > total) { cash = total; card = 0; }
-    cashPart = cash;
-    cardPart = total - cash;
+    if (c.cash + c.card + 0.001 < c.total) { showToast('Наличные + карта меньше суммы'); return; }
+    var cashEff = Math.min(c.cash, c.total);
+    cashPart = Math.round(cashEff * 100) / 100;
+    cardPart = Math.round((c.total - cashPart) * 100) / 100;
   }
 
-  var paidTotal = payment === 'cash' ? cash : (payment === 'card' ? total : cash + card);
+  var paidTotal = c.payment === 'cash' ? c.cash : (c.payment === 'card' ? c.total : c.cash + c.card);
 
   if (!state.shift.open) {
-    state.shift = { open: true, openedAt: Date.now(), closedAt: null, id: 'shift_' + Date.now() };
+    state.shift = { open: true, openedAt: Date.now(), closedAt: null, id: 'shift_' + Date.now(), movements: [] };
   }
+  if (!Array.isArray(state.shift.movements)) state.shift.movements = [];
 
   var sale = {
     id: Date.now().toString().slice(-6),
-    payment: payment,
+    payment: c.payment,
     items: state.cart.slice(),
-    total: total,
+    subtotal: c.subtotal,
+    discount: c.discount,
+    discountType: c.discountType,
+    discountValue: c.discountValue,
+    total: c.total,
     time: Date.now(),
     shiftId: state.shift.id || null,
     cash: cashPart,
     card: cardPart,
-    change: Math.max(0, paidTotal - total)
+    change: Math.max(0, Math.round((paidTotal - c.total) * 100) / 100)
   };
 
   state.sales.push(sale);
   state.cart = [];
   saveData();
+  feedback('pay');
   renderCart();
   renderShift();
   closeCheckout();
-  showToast('Продажа #' + sale.id + ' — ' + formatMoney(total));
+  showToast('Продажа #' + sale.id + ' — ' + formatMoney(c.total));
 }
 
 /* ---------------- смена ---------------- */
 
 function toggleShift() {
   if (!state.shift.open) {
-    state.shift = { open: true, openedAt: Date.now(), closedAt: null, id: 'shift_' + Date.now() };
+    state.shift = { open: true, openedAt: Date.now(), closedAt: null, id: 'shift_' + Date.now(), movements: [] };
     saveData();
     renderShift();
+    feedback('ok');
     showToast('Смена открыта');
     switchTab('shift');
     return;
@@ -1347,12 +1650,12 @@ function toggleShift() {
 
 function openShiftCloseModal() {
   var t = shiftTotals();
-
   $('shift-modal-title').textContent = 'Закрыть смену?';
   $('shift-modal-body').innerHTML =
     '<div class="row"><span>Выручка</span><span>' + formatMoney(t.total) + '</span></div>' +
     '<div class="row"><span>Чеков</span><span>' + t.count + '</span></div>' +
-    '<div class="row"><span>Позиций</span><span>' + t.items + '</span></div>';
+    '<div class="row"><span>Позиций</span><span>' + t.items + '</span></div>' +
+    '<div class="row"><span>Скидки</span><span>' + formatMoney(t.discount) + '</span></div>';
 
   $('shift-modal-actions').innerHTML =
     '<button class="btn-outline" id="shift-modal-cancel">Отмена</button>' +
@@ -1363,9 +1666,27 @@ function openShiftCloseModal() {
   $('shift-modal').classList.add('open');
 }
 
+function archiveCurrentShift() {
+  var sales = shiftSales();
+  var t = shiftTotals();
+  var entry = {
+    id: state.shift.id,
+    openedAt: state.shift.openedAt,
+    closedAt: state.shift.closedAt,
+    movements: (state.shift.movements || []).slice(),
+    sales: sales.slice(),
+    totals: { total: t.total, count: t.count, items: t.items, cash: t.cash, card: t.card, discount: t.discount }
+  };
+  state.shiftArchive = (state.shiftArchive || []).filter(function(a){ return a.id !== entry.id; });
+  state.shiftArchive.push(entry);
+  // keep sales in state.sales for archive lookup by id? easier keep them; they are filtered by shiftId
+  if (state.shiftArchive.length > 30) state.shiftArchive = state.shiftArchive.slice(-30);
+}
+
 function confirmCloseShift() {
   state.shift.open = false;
   state.shift.closedAt = Date.now();
+  archiveCurrentShift();
   saveData();
   renderShift();
   showShiftSavedModal();
@@ -1373,64 +1694,43 @@ function confirmCloseShift() {
 
 function showShiftSavedModal() {
   var t = shiftTotals();
-
   $('shift-modal-title').textContent = 'Смена закрыта';
   $('shift-modal-body').innerHTML =
     '<div class="row"><span>Выручка</span><span>' + formatMoney(t.total) + '</span></div>' +
     '<div class="row"><span>Чеков</span><span>' + t.count + '</span></div>' +
     '<div class="row"><span>Позиций</span><span>' + t.items + '</span></div>';
 
-  if (t.count > 0) {
-    $('shift-modal-actions').innerHTML =
-      '<button class="btn-outline" id="shift-modal-later">Позже</button>' +
-      '<button class="btn-primary" id="shift-modal-pdf">Скачать PDF</button>';
-    $('shift-modal-later').onclick = closeShiftModal;
-    $('shift-modal-pdf').onclick = function () {
-      closeShiftModal();
-      saveShiftPdf();
-    };
-  } else {
-    $('shift-modal-actions').innerHTML =
-      '<button class="btn-primary" id="shift-modal-later">Понятно</button>';
-    $('shift-modal-later').onclick = closeShiftModal;
-  }
-
+  $('shift-modal-actions').innerHTML =
+    '<button class="btn-outline" id="shift-modal-later">Позже</button>' +
+    '<button class="btn-primary" id="shift-modal-pdf">Скачать PDF</button>';
+  $('shift-modal-later').onclick = closeShiftModal;
+  $('shift-modal-pdf').onclick = function () { closeShiftModal(); saveShiftPdf(); };
   $('shift-modal').classList.add('open');
 }
 
-function closeShiftModal() {
-  $('shift-modal').classList.remove('open');
-}
+function closeShiftModal() { $('shift-modal').classList.remove('open'); }
 
 function shiftTotals() {
   var sales = shiftSales();
-  var result = {
-    sales: sales,
-    total: 0,
-    count: sales.length,
-    items: 0,
-    cash: 0,
-    card: 0,
-    mixed: 0,
-    summary: []
-  };
+  var result = { sales: sales, total: 0, count: sales.length, items: 0, cash: 0, card: 0, mixed: 0, discount: 0, summary: [] };
   var summary = {};
 
   for (var i = 0; i < sales.length; i++) {
     var sale = sales[i];
-    result.total += sale.total;
+    result.total += sale.total || 0;
+    result.discount += sale.discount || 0;
 
     if (sale.payment === 'cash') {
-      result.cash += sale.total;
+      result.cash += sale.total || 0;
     } else if (sale.payment === 'card') {
-      result.card += sale.total;
+      result.card += sale.total || 0;
     } else {
-      result.mixed += sale.total;
+      result.mixed += sale.total || 0;
       result.cash += sale.cash || 0;
       result.card += sale.card || 0;
     }
 
-    for (var j = 0; j < sale.items.length; j++) {
+    for (var j = 0; j < (sale.items || []).length; j++) {
       var item = sale.items[j];
       result.items += item.qty;
       if (!summary[item.name]) summary[item.name] = { name: item.name, qty: 0, sum: 0 };
@@ -1439,11 +1739,70 @@ function shiftTotals() {
     }
   }
 
-  var names = Object.keys(summary).sort(function (a, b) { return summary[b].sum - summary[a].sum; });
+  var names = Object.keys(summary).sort(function (a, b) { return String(a).localeCompare(String(b), 'ru', {sensitivity:'base',numeric:true}); });
   for (var n = 0; n < names.length; n++) result.summary.push(summary[names[n]]);
-
   return result;
 }
+
+function showXReport() {
+  var t = shiftTotals();
+  var inSum = 0, outSum = 0;
+  var moves = (state.shift.movements || []);
+  for (var i=0;i<moves.length;i++){ if(moves[i].type==='in') inSum+=moves[i].amount||0; else outSum+=moves[i].amount||0; }
+  var cashInDrawer = t.cash + inSum - outSum;
+  $('shift-modal-title').textContent = state.shift.open ? 'X-отчёт (промежуточный)' : 'Отчёт смены';
+  $('shift-modal-body').innerHTML =
+    '<div class="row"><span>Выручка</span><span>' + formatMoney(t.total) + '</span></div>' +
+    '<div class="row"><span>Чеков</span><span>' + t.count + '</span></div>' +
+    '<div class="row"><span>Позиций</span><span>' + t.items + '</span></div>' +
+    '<div class="row"><span>Скидки</span><span>' + formatMoney(t.discount) + '</span></div>' +
+    '<div class="row"><span>Наличные (продажи)</span><span>' + formatMoney(t.cash) + '</span></div>' +
+    '<div class="row"><span>Карта (продажи)</span><span>' + formatMoney(t.card) + '</span></div>' +
+    '<div class="row"><span>Внесения / изъятия</span><span>+' + formatMoney(inSum) + ' / −' + formatMoney(outSum) + '</span></div>' +
+    '<div class="row"><span><b>Наличных в кассе (расч.)</b></span><span><b>' + formatMoney(cashInDrawer) + '</b></span></div>';
+  $('shift-modal-actions').innerHTML = '<button class="btn-primary" id="shift-modal-later" style="flex:1">Закрыть</button>';
+  $('shift-modal-later').onclick = closeShiftModal;
+  $('shift-modal').classList.add('open');
+}
+
+function addCashMovement(type) {
+  if (!state.shift.open) { showToast('Смена закрыта'); return; }
+  var label = type === 'in' ? 'Внесение наличных (Br)' : 'Изъятие наличных (Br)';
+  var val = window.prompt(label, '');
+  if (val === null) return;
+  var amount = toNum(val);
+  if (!(amount > 0)) { showToast('Введите сумму'); return; }
+  var note = window.prompt('Комментарий (необязательно)', '') || '';
+  if (!Array.isArray(state.shift.movements)) state.shift.movements = [];
+  state.shift.movements.push({ type: type, amount: Math.round(amount*100)/100, note: String(note).slice(0,80), time: Date.now() });
+  saveData();
+  renderShift();
+  showToast((type==='in'?'Внесено ':'Изъято ') + formatMoney(amount));
+}
+
+function renderArchiveList() {
+  var wrap = $('shift-archive-list');
+  if (!wrap) return;
+  var list = (state.shiftArchive || []).slice().reverse();
+  if (!list.length) { wrap.innerHTML = '<div class="hint">Пока нет закрытых смен</div>'; return; }
+  var html = '';
+  for (var i=0;i<list.length;i++){
+    var a = list[i];
+    var t = a.totals || {};
+    var d = a.closedAt ? new Date(a.closedAt) : new Date(a.openedAt||Date.now());
+    var name = ('0'+d.getDate()).slice(-2)+'.'+('0'+(d.getMonth()+1)).slice(-2)+' '+formatTime(a.closedAt||a.openedAt);
+    html += '<div class="archive-item"><h4>Смена ' + name + '</h4>' +
+      '<div class="meta">Выручка ' + formatMoney(t.total||0) + ' · чеков ' + (t.count||0) + ' · позиций ' + (t.items||0) + '</div>' +
+      '<div class="actions"><button class="btn-outline btn-small" data-arch-pdf="'+escapeHtml(a.id)+'">PDF</button>' +
+      '<button class="btn-outline btn-small" data-arch-csv="'+escapeHtml(a.id)+'">CSV</button></div></div>';
+  }
+  wrap.innerHTML = html;
+  var pdfBtns = wrap.querySelectorAll('[data-arch-pdf]');
+  for (var p=0;p<pdfBtns.length;p++) pdfBtns[p].addEventListener('click', function(){ saveShiftPdfFor(this.getAttribute('data-arch-pdf')); });
+  var csvBtns = wrap.querySelectorAll('[data-arch-csv]');
+  for (var c=0;c<csvBtns.length;c++) csvBtns[c].addEventListener('click', function(){ exportShiftCsv(this.getAttribute('data-arch-csv')); });
+}
+
 
 function formatDate(ts) {
   return new Date(ts).toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' });
@@ -1543,12 +1902,61 @@ function pagesToPdf(canvases) {
   return new Blob([pdf], { type: 'application/pdf' });
 }
 
-function buildShiftPdf() {
-  var sales = shiftSales();
-  var totals = shiftTotals();
-  var startedAt = state.shift.openedAt || sales[0].time;
-  var endedAt = state.shift.closedAt || sales[sales.length - 1].time;
-  var endedLabel = state.shift.closedAt ? formatTime(state.shift.closedAt) : 'смена открыта';
+
+function getShiftById(id) {
+  if (state.shift && state.shift.id === id) return { shift: state.shift, sales: shiftSales(), movements: state.shift.movements || [] };
+  var arch = (state.shiftArchive || []).filter(function(a){ return a.id === id; })[0];
+  if (arch) return { shift: { id: arch.id, openedAt: arch.openedAt, closedAt: arch.closedAt }, sales: arch.sales || (state.sales||[]).filter(function(sl){return sl.shiftId===id}), movements: arch.movements || [] };
+  return null;
+}
+
+function exportShiftCsv(shiftId) {
+  var data = getShiftById(shiftId);
+  if (!data) { showToast('Смена не найдена'); return; }
+  var rows = [['shift_id','sale_id','time','payment','item','qty','price','line_total','sale_discount','sale_total','cash','card','change']];
+  for (var i=0;i<(data.sales||[]).length;i++){
+    var sl = data.sales[i];
+    for (var j=0;j<(sl.items||[]).length;j++){
+      var it = sl.items[j];
+      rows.push([data.shift.id, sl.id, new Date(sl.time).toISOString(), sl.payment, it.name, it.qty, it.price, it.price*it.qty, sl.discount||0, sl.total, sl.cash||0, sl.card||0, sl.change||0]);
+    }
+  }
+  var csv = rows.map(function(r){ return r.map(function(v){ var t=String(v==null?'':v); return '"'+t.replace(/"/g,'""')+'"'; }).join(';'); }).join('\n');
+  downloadText('\uFEFF'+csv, 'shift-'+String(data.shift.id).slice(-6)+'.csv', 'text/csv;charset=utf-8');
+  showToast('CSV сохранён');
+}
+
+function shiftTotalsFor(sales) {
+  var result = { sales: sales||[], total: 0, count: (sales||[]).length, items: 0, cash: 0, card: 0, mixed: 0, discount: 0, summary: [] };
+  var summary = {};
+  for (var i = 0; i < result.sales.length; i++) {
+    var sale = result.sales[i];
+    result.total += sale.total || 0;
+    result.discount += sale.discount || 0;
+    if (sale.payment === 'cash') result.cash += sale.total || 0;
+    else if (sale.payment === 'card') result.card += sale.total || 0;
+    else { result.mixed += sale.total || 0; result.cash += sale.cash || 0; result.card += sale.card || 0; }
+    for (var j = 0; j < (sale.items || []).length; j++) {
+      var item = sale.items[j];
+      result.items += item.qty;
+      if (!summary[item.name]) summary[item.name] = { name: item.name, qty: 0, sum: 0 };
+      summary[item.name].qty += item.qty;
+      summary[item.name].sum += item.price * item.qty;
+    }
+  }
+  var names = Object.keys(summary).sort(function (a, b) { return String(a).localeCompare(String(b), 'ru', {sensitivity:'base',numeric:true}); });
+  for (var n = 0; n < names.length; n++) result.summary.push(summary[names[n]]);
+  return result;
+}
+
+
+function buildShiftPdf(salesArg, shiftArg) {
+  var sales = salesArg || shiftSales();
+  var sh = shiftArg || state.shift;
+  var totals = shiftTotalsFor(sales);
+  var startedAt = (sh && sh.openedAt) || (sales[0] && sales[0].time) || Date.now();
+  var endedAt = (sh && sh.closedAt) || (sales[sales.length - 1] && sales[sales.length - 1].time) || Date.now();
+  var endedLabel = (sh && sh.closedAt) ? formatTime(sh.closedAt) : 'смена открыта';
   var contentW = PDF_PAGE_W - PDF_MARGIN * 2;
   var bottomLimit = PDF_PAGE_H - PDF_MARGIN - 20;
 
@@ -1648,7 +2056,8 @@ function buildShiftPdf() {
   var payRows = [
     ['Наличные', formatMoney(totals.cash)],
     ['Карта', formatMoney(totals.card)],
-    ['Смешанный', formatMoney(totals.mixed)]
+    ['Смешанный', formatMoney(totals.mixed)],
+    ['Скидки', formatMoney(totals.discount||0)]
   ];
   for (var pr = 0; pr < payRows.length; pr++) {
     ensure(16);
@@ -1717,6 +2126,7 @@ function buildShiftPdf() {
     if (sale.payment === 'mixed') {
       payLabel += ' · нал. ' + formatMoney(sale.cash) + ' / карта ' + formatMoney(sale.card);
     }
+    if (sale.discount) payLabel += ' · скидка ' + formatMoney(sale.discount);
     if (sale.change) payLabel += ' · сдача ' + formatMoney(sale.change);
     txt(fit(payLabel, innerWidth), leftX, ty, 8.5, false, '#555555');
     ty += 7;
@@ -1742,49 +2152,39 @@ function buildShiftPdf() {
   return pagesToPdf(pages);
 }
 
+function _downloadPdfBlob(blob, fileName) {
+  var url = URL.createObjectURL(blob);
+  var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (isIOS) {
+    var file = null; try { file = new File([blob], fileName, { type: 'application/pdf' }); } catch (e) { file = null; }
+    if (file && navigator.canShare && navigator.canShare({ files: [file] })) navigator.share({ files: [file], title: fileName }).catch(function(){ window.open(url,'_blank'); });
+    else window.open(url, '_blank');
+  } else {
+    var link = document.createElement('a'); link.href = url; link.download = fileName; link.rel='noopener'; document.body.appendChild(link); link.click(); document.body.removeChild(link);
+  }
+  setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+}
+
 function saveShiftPdf() {
   var sales = shiftSales();
-  if (!state.shift.id || !sales.length) {
-    showToast('За эту смену нет продаж');
-    return;
-  }
-
+  if (!state.shift.id || !sales.length) { showToast('За эту смену нет продаж'); return; }
   var blob;
-  try {
-    blob = buildShiftPdf();
-  } catch (err) {
-    showToast('Не удалось создать PDF');
-    return;
-  }
-
-  var url = URL.createObjectURL(blob);
-  var fileName = shiftReportName() + '.pdf';
-  var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
-  if (isIOS) {
-    var file = null;
-    try { file = new File([blob], fileName, { type: 'application/pdf' }); } catch (e) { file = null; }
-    if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
-      navigator.share({ files: [file], title: fileName }).catch(function () {
-        window.open(url, '_blank');
-      });
-    } else {
-      window.open(url, '_blank');
-    }
-  } else {
-    var link = document.createElement('a');
-    link.href = url;
-    link.download = fileName;
-    link.rel = 'noopener';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-
-  setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+  try { blob = buildShiftPdf(sales, state.shift); } catch (err) { showToast('Не удалось создать PDF'); return; }
+  _downloadPdfBlob(blob, shiftReportName() + '.pdf');
   showToast('PDF сохранён');
 }
+
+function saveShiftPdfFor(shiftId) {
+  var data = getShiftById(shiftId);
+  if (!data || !data.sales.length) { showToast('Нет данных для PDF'); return; }
+  var blob;
+  try { blob = buildShiftPdf(data.sales, data.shift); } catch (err) { showToast('Не удалось создать PDF'); return; }
+  var stamp = new Date(data.shift.openedAt || Date.now());
+  var day=('0'+stamp.getDate()).slice(-2), month=('0'+(stamp.getMonth()+1)).slice(-2);
+  _downloadPdfBlob(blob, 'Смена ' + day + '.' + month + '.' + stamp.getFullYear() + '.pdf');
+  showToast('PDF сохранён');
+}
+
 
 function shiftSales() {
   var out = [];
@@ -1798,113 +2198,90 @@ function shiftSales() {
 function renderShift() {
   var isOpen = !!state.shift.open;
   var toggle = $('shift-toggle');
-  toggle.textContent = isOpen ? 'Закрыть смену' : 'Открыть смену';
-  toggle.className = isOpen ? 'btn-outline' : 'btn-primary';
+  if (toggle) { toggle.textContent = isOpen ? 'Закрыть смену' : 'Открыть смену'; toggle.className = isOpen ? 'btn-outline btn-small' : 'btn-primary btn-small'; }
 
   var badge = $('shift-badge');
-  badge.className = 'shift-badge ' + (isOpen ? 'open' : 'closed');
-  badge.textContent = isOpen ? 'Смена открыта' : 'Смена закрыта';
+  if (badge) { badge.className = 'shift-badge ' + (isOpen ? 'open' : 'closed'); badge.textContent = isOpen ? 'Смена открыта' : 'Смена закрыта'; }
 
   var statusText = $('shift-status-text');
-  if (isOpen) {
-    statusText.textContent = 'Начало: ' + formatTime(state.shift.openedAt);
-    statusText.style.color = 'var(--success)';
-  } else if (state.shift.id) {
-    statusText.textContent = state.shift.closedAt
-      ? 'Закрыта в ' + formatTime(state.shift.closedAt) + ' · отчёт сохранён'
-      : 'Отчёт за последнюю смену сохранён';
-    statusText.style.color = 'var(--muted)';
-  } else {
-    statusText.textContent = 'Откройте смену, чтобы начать учёт продаж';
-    statusText.style.color = 'var(--muted)';
+  if (statusText) {
+    if (isOpen) {
+      statusText.textContent = 'Начало: ' + formatTime(state.shift.openedAt);
+      statusText.style.color = 'var(--success)';
+    } else if (state.shift.id) {
+      statusText.textContent = state.shift.closedAt ? 'Закрыта в ' + formatTime(state.shift.closedAt) + ' · отчёт сохранён' : 'Отчёт за последнюю смену сохранён';
+      statusText.style.color = 'var(--muted)';
+    } else {
+      statusText.textContent = 'Откройте смену, чтобы начать учёт продаж';
+      statusText.style.color = 'var(--muted)';
+    }
   }
 
   var sales = shiftSales();
   var hasData = sales.length > 0 || isOpen;
+  var t = shiftTotals();
 
   var pdfBtn = $('shift-pdf');
-  if (pdfBtn) pdfBtn.style.display = sales.length ? 'block' : 'none';
+  if (pdfBtn) pdfBtn.style.display = sales.length ? 'inline-flex' : 'none';
 
-  $('shift-stats').style.display = hasData ? 'grid' : 'none';
-  $('shift-payments-wrap').style.display = sales.length ? 'block' : 'none';
-  $('shift-summary-wrap').style.display = sales.length ? 'block' : 'none';
-  $('shift-receipts-wrap').style.display = sales.length ? 'block' : 'none';
+  var stEl=$('shift-stats'); if(stEl) stEl.style.display = hasData ? 'grid' : 'none';
+  var pw=$('shift-payments-wrap'); if(pw) pw.style.display = sales.length ? 'block' : 'none';
+  var sw=$('shift-summary-wrap'); if(sw) sw.style.display = sales.length ? 'block' : 'none';
+  var rw=$('shift-receipts-wrap'); if(rw) rw.style.display = sales.length ? 'block' : 'none';
+  var movWrap = $('shift-movements-wrap');
+  if (movWrap) movWrap.style.display = (isOpen || (state.shift.movements||[]).length) ? 'block' : 'none';
 
-  var total = 0;
-  var itemsCount = 0;
-  var cashTotal = 0;
-  var cardTotal = 0;
-  var mixedTotal = 0;
-  var summary = {};
+  if($('shift-total')) $('shift-total').textContent = formatMoney(t.total);
+  if($('shift-count')) $('shift-count').textContent = sales.length;
+  if($('shift-items')) $('shift-items').textContent = t.items;
+  if($('pay-cash')) $('pay-cash').textContent = formatMoney(t.cash);
+  if($('pay-card')) $('pay-card').textContent = formatMoney(t.card);
+  if($('pay-mixed')) $('pay-mixed').textContent = formatMoney(t.mixed);
 
-  for (var i = 0; i < sales.length; i++) {
-    var sale = sales[i];
-    total += sale.total;
-    if (sale.payment === 'cash') cashTotal += sale.total;
-    else if (sale.payment === 'card') cardTotal += sale.total;
-    else {
-      mixedTotal += sale.total;
-      cashTotal += sale.cash || 0;
-      cardTotal += sale.card || 0;
-    }
-
-    for (var j = 0; j < sale.items.length; j++) {
-      var item = sale.items[j];
-      itemsCount += item.qty;
-      if (!summary[item.name]) summary[item.name] = { qty: 0, sum: 0 };
-      summary[item.name].qty += item.qty;
-      summary[item.name].sum += item.price * item.qty;
-    }
-  }
-
-  $('shift-total').textContent = formatMoney(total);
-  $('shift-count').textContent = sales.length;
-  $('shift-items').textContent = itemsCount;
-  $('pay-cash').textContent = formatMoney(cashTotal);
-  $('pay-card').textContent = formatMoney(cardTotal);
-  $('pay-mixed').textContent = formatMoney(mixedTotal);
-
-  var names = Object.keys(summary).sort(function (a, b) { return summary[b].sum - summary[a].sum; });
   var summaryHtml = '';
-  for (var n = 0; n < names.length; n++) {
-    var row = summary[names[n]];
-    summaryHtml += '<div class="sum-row"><span>' + escapeHtml(names[n]) + ' × ' + row.qty + '</span>' +
-      '<span>' + formatMoney(row.sum) + '</span></div>';
+  for (var n = 0; n < t.summary.length; n++) {
+    var row = t.summary[n];
+    summaryHtml += '<div class="sum-row"><span>' + escapeHtml(row.name) + ' × ' + row.qty + '</span><span>' + formatMoney(row.sum) + '</span></div>';
   }
-  $('shift-summary').innerHTML = summaryHtml;
+  if (t.discount > 0) summaryHtml += '<div class="sum-row"><span style="color:var(--success)">Скидки всего</span><span style="color:var(--success)">− ' + formatMoney(t.discount) + '</span></div>';
+  if ($('shift-summary')) $('shift-summary').innerHTML = summaryHtml || '<div class="sum-row"><span>Нет продаж</span><span></span></div>';
+
+  var movHtml = '';
+  var moves = state.shift.movements || [];
+  var inSum=0,outSum=0;
+  for (var mi=0; mi<moves.length; mi++){
+    var mv = moves[mi];
+    if (mv.type==='in') inSum += mv.amount||0; else outSum += mv.amount||0;
+    movHtml += '<div class="movement"><span>' + (mv.type==='in'?'+ Внесение':'− Изъятие') + (mv.note? ' · '+escapeHtml(mv.note):'') + ' <span style="color:var(--muted)">' + formatTime(mv.time) + '</span></span><span style="font-weight:700">' + (mv.type==='in'?'+':'−') + formatMoney(mv.amount) + '</span></div>';
+  }
+  if (!moves.length) movHtml = '<div class="hint">Нет движений</div>';
+  else movHtml += '<div class="movement"><span><b>Наличных в кассе (расч.)</b></span><span><b>' + formatMoney(t.cash + inSum - outSum) + '</b></span></div>';
+  if ($('shift-movements')) $('shift-movements').innerHTML = movHtml;
 
   var listHtml = '';
   for (var k = sales.length - 1; k >= 0; k--) {
-    var s = sales[k];
+    var sl = sales[k];
     var itemsHtml = '';
-    for (var m = 0; m < s.items.length; m++) {
-      var si = s.items[m];
-      itemsHtml += '<div class="item-row"><span>' + escapeHtml(si.name) + ' × ' + si.qty + '</span>' +
-        '<span>' + formatMoney(si.price * si.qty) + '</span></div>';
+    for (var m = 0; m < (sl.items||[]).length; m++) {
+      var si = sl.items[m];
+      itemsHtml += '<div class="item-row"><span>' + escapeHtml(si.name) + ' × ' + si.qty + '</span><span>' + formatMoney(si.price * si.qty) + '</span></div>';
     }
-
     var extra = '';
-    if (s.payment === 'mixed') {
-      extra = '<div class="sale-meta">Наличными ' + formatMoney(s.cash) + ' · Картой ' + formatMoney(s.card) + '</div>';
-    } else if (s.payment === 'cash' && s.change) {
-      extra = '<div class="sale-meta">Сдача ' + formatMoney(s.change) + '</div>';
-    }
+    if (sl.payment === 'mixed') extra = '<div class="sale-meta">Наличными ' + formatMoney(sl.cash) + ' · Картой ' + formatMoney(sl.card) + '</div>';
+    else if (sl.payment === 'cash' && sl.change) extra = '<div class="sale-meta">Сдача ' + formatMoney(sl.change) + '</div>';
+    if (sl.discount) extra += '<div class="sale-meta" style="color:var(--success)">Скидка ' + formatMoney(sl.discount) + '</div>';
 
     listHtml += '<div class="sale-card">' +
-      '<div class="sale-header">' +
-        '<div>' +
-          '<div class="sale-id">Чек #' + escapeHtml(s.id) + '</div>' +
-          '<div class="sale-meta">' + formatTime(s.time) + '</div>' +
-        '</div>' +
-        '<span class="payment-badge payment-' + escapeHtml(s.payment) + '">' + escapeHtml(PAYMENT_LABELS[s.payment] || s.payment) + '</span>' +
-      '</div>' +
-      '<div class="sale-items">' + itemsHtml + '</div>' +
-      extra +
-      '<div class="sale-total"><span>Итого</span><span>' + formatMoney(s.total) + '</span></div>' +
-    '</div>';
+      '<div class="sale-header"><div><div class="sale-id">Чек #' + escapeHtml(sl.id) + '</div><div class="sale-meta">' + formatTime(sl.time) + '</div></div>' +
+      '<span class="payment-badge payment-' + escapeHtml(sl.payment) + '">' + escapeHtml(PAYMENT_LABELS[sl.payment] || sl.payment) + '</span></div>' +
+      '<div class="sale-items">' + itemsHtml + '</div>' + extra +
+      '<div class="sale-total"><span>Итого</span><span>' + formatMoney(sl.total) + '</span></div></div>';
   }
-  $('shift-sales-list').innerHTML = listHtml;
+  if ($('shift-sales-list')) $('shift-sales-list').innerHTML = listHtml || '<div class="hint">Чеков пока нет</div>';
+
+  renderArchiveList();
 }
+
 
 /* ---------------- редактор меню ---------------- */
 
@@ -2005,11 +2382,12 @@ function renderEditorProducts() {
     var thumb = item.image
       ? '<div class="edit-row-thumb"><img src="' + escapeHtml(item.image) + '" alt=""></div>'
       : '<div class="edit-row-thumb">' + (item.emoji || '☕') + '</div>';
+    var badges = (item.favorite ? ' ★' : '') + (item.available === false ? ' · <span class="unavailable-badge">нет в наличии</span>' : '');
     html += '<div class="edit-row">' +
       thumb +
       '<div class="edit-row-main">' +
-        '<div class="edit-row-title">' + escapeHtml(item.name) + '</div>' +
-        '<div class="edit-row-sub">' + escapeHtml(categoryName(item.category)) + ' · ' + formatMoney(item.price) + '</div>' +
+        '<div class="edit-row-title">' + escapeHtml(item.name) + (item.favorite ? ' <span style="color:var(--warning)">★</span>' : '') + '</div>' +
+        '<div class="edit-row-sub">' + escapeHtml(categoryName(item.category)) + ' · ' + formatMoney(item.price) + (item.available === false ? ' · <span class="unavailable-badge">нет в наличии</span>' : '') + '</div>' +
       '</div>' +
       '<div class="edit-row-actions">' +
         '<button type="button" class="btn-icon-sm" data-edit="' + escapeHtml(item.id) + '">' +
@@ -2077,6 +2455,8 @@ function saveProductFromForm() {
   var price = toNum($('prod-price').value);
   var category = $('prod-category').value;
   var image = state.productImageDraft || '';
+  var available = $('prod-available') ? $('prod-available').checked : true;
+  var favorite = $('prod-favorite') ? $('prod-favorite').checked : false;
 
   if (!name) { showToast('Введите название'); return; }
   if (!price || price <= 0) { showToast('Введите цену'); return; }
@@ -2085,22 +2465,15 @@ function saveProductFromForm() {
   if (state.editingProductId) {
     var p = getProduct(state.editingProductId);
     if (p) {
-      p.name = name;
-      p.price = price;
-      p.image = image;
-      p.category = category;
+      p.name = name; p.price = price; p.image = image; p.category = category;
+      p.available = available; p.favorite = favorite;
       if (!p.emoji) p.emoji = '☕';
     }
     showToast('Позиция обновлена');
   } else {
     state.products.push({
-      id: 'p' + Date.now(),
-      name: name,
-      price: price,
-      image: image,
-      emoji: '☕',
-      category: category,
-      desc: ''
+      id: 'p' + Date.now(), name: name, price: price, image: image, emoji: '☕',
+      category: category, desc: '', available: available, favorite: favorite
     });
     showToast('Позиция добавлена');
   }
@@ -2116,14 +2489,30 @@ function editProduct(id) {
   $('prod-name').value = p.name;
   $('prod-price').value = p.price;
   setProductImagePreview(p.image || '');
-  var fileInput = $('prod-image');
-  if (fileInput) fileInput.value = '';
+  var fileInput = $('prod-image'); if (fileInput) fileInput.value = '';
   fillCategorySelect();
   $('prod-category').value = p.category;
+  if ($('prod-available')) $('prod-available').checked = p.available !== false;
+  if ($('prod-favorite')) $('prod-favorite').checked = !!p.favorite;
   $('prod-save').textContent = 'Сохранить изменения';
   $('prod-cancel').style.display = 'block';
+  var cp = $('prod-copy'); if (cp) cp.style.display = 'block';
   switchEditorTab('products');
   $('prod-name').focus();
+}
+
+function copyCurrentProduct() {
+  var name = ($('prod-name').value || '').trim();
+  var price = toNum($('prod-price').value);
+  var category = $('prod-category').value;
+  if (!name || !price || !category) { showToast('Заполните позицию для копирования'); return; }
+  state.products.push({
+    id: 'p' + Date.now(), name: name + ' (копия)', price: price, image: state.productImageDraft || '',
+    emoji: '☕', category: category, desc: '', available: $('prod-available') ? $('prod-available').checked : true,
+    favorite: $('prod-favorite') ? $('prod-favorite').checked : false
+  });
+  afterMenuChange();
+  showToast('Позиция скопирована');
 }
 
 function resetProductForm() {
@@ -2131,10 +2520,12 @@ function resetProductForm() {
   $('prod-name').value = '';
   $('prod-price').value = '';
   setProductImagePreview('');
-  var fileInput = $('prod-image');
-  if (fileInput) fileInput.value = '';
+  var fileInput = $('prod-image'); if (fileInput) fileInput.value = '';
+  if ($('prod-available')) $('prod-available').checked = true;
+  if ($('prod-favorite')) $('prod-favorite').checked = false;
   $('prod-save').textContent = 'Добавить позицию';
   $('prod-cancel').style.display = 'none';
+  var cp = $('prod-copy'); if (cp) cp.style.display = 'none';
   fillCategorySelect();
 }
 
