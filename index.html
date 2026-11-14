@@ -311,14 +311,7 @@ button{font-family:inherit;user-select:none;-webkit-user-select:none}
 .edit-toolbar input{flex:1}
 .edit-toolbar select{flex:0 0 auto;max-width:42%}
 .edit-toolbar input:focus,.edit-toolbar select:focus{border-color:var(--accent)}
-.move-btns{display:flex;flex-direction:column;gap:3px;margin-right:2px}
-.move-btn{
-  width:28px;height:22px;display:flex;align-items:center;justify-content:center;
-  border:1px solid var(--border);border-radius:7px;background:var(--bg);
-  cursor:pointer;color:var(--muted);font-size:11px;line-height:1;padding:0;
-}
-.move-btn:active{background:var(--border);color:var(--text)}
-.move-btn:disabled{opacity:.25;cursor:default}
+.sort-note{font-size:11px;color:var(--muted);margin:-2px 0 10px}
 .btn-icon-sm{
   width:34px;height:34px;display:flex;align-items:center;justify-content:center;
   border:1px solid var(--border);border-radius:9px;background:var(--bg);
@@ -350,7 +343,7 @@ button{font-family:inherit;user-select:none;-webkit-user-select:none}
 <header class="app-header">
   <div class="logo-group">
     <h1 class="app-title">☕ Coffee POS</h1>
-    <span class="app-version" id="app-version">v1.6.0</span>
+    <span class="app-version" id="app-version">v1.7.0</span>
   </div>
   <div class="header-actions">
     <button class="icon-btn" id="editor-btn" title="Редактировать меню" aria-label="Редактировать меню">
@@ -560,6 +553,7 @@ button{font-family:inherit;user-select:none;-webkit-user-select:none}
         <input type="text" id="editor-prod-search" placeholder="Поиск позиции..." autocomplete="off" />
         <select id="editor-prod-filter-cat"></select>
       </div>
+      <div class="sort-note">Сортировка: по названию (А–Я)</div>
       <div class="edit-list" id="editor-products-list"></div>
     </div>
 
@@ -572,6 +566,7 @@ button{font-family:inherit;user-select:none;-webkit-user-select:none}
         <button class="btn-primary" id="cat-save">Добавить категорию</button>
         <button class="btn-outline" id="cat-cancel" style="display:none">Отменить редактирование</button>
       </div>
+      <div class="sort-note">Сортировка: по названию (А–Я)</div>
       <div class="edit-list" id="editor-categories-list"></div>
     </div>
 
@@ -614,7 +609,7 @@ var STORAGE_KEY = 'coffee_pos_data';
 var MENU_CACHE_KEY = 'coffee_pos_menu';
 var MENU_DIRTY_KEY = 'coffee_pos_menu_dirty';
 var GH_KEY = 'coffee_pos_github';
-var APP_VERSION = '1.6.0';
+var APP_VERSION = '1.7.0';
 var MENU_FILE = 'menu.json';
 
 var state = {
@@ -789,10 +784,19 @@ function saveData() {
   }
 }
 
+function sortMenu() {
+  var cmp = function (a, b) {
+    return String((a && a.name) || '').localeCompare(String((b && b.name) || ''), 'ru', { sensitivity: 'base', numeric: true });
+  };
+  if (Array.isArray(state.categories)) state.categories.sort(cmp);
+  if (Array.isArray(state.products)) state.products.sort(cmp);
+}
+
 function applyMenu(menu) {
   if (!menu || !Array.isArray(menu.products)) return false;
   state.categories = Array.isArray(menu.categories) ? menu.categories : [];
   state.products = menu.products;
+  sortMenu();
   var known = false;
   for (var i = 0; i < state.categories.length; i++) {
     if (state.categories[i].id === state.activeCategory) known = true;
@@ -1957,57 +1961,6 @@ function fillEditorProductFilter() {
   if (search) search.value = state.editorProductSearch || '';
 }
 
-function moveInArray(arr, index, dir) {
-  var to = index + dir;
-  if (index < 0 || to < 0 || to >= arr.length) return false;
-  var tmp = arr[index];
-  arr[index] = arr[to];
-  arr[to] = tmp;
-  return true;
-}
-
-function moveProduct(id, dir) {
-  var index = -1;
-  for (var i = 0; i < state.products.length; i++) {
-    if (state.products[i].id === id) { index = i; break; }
-  }
-  if (index < 0) return;
-
-  // if filtered view, move within visible sequence in the global array
-  var search = (state.editorProductSearch || '').toLowerCase().trim();
-  var cat = state.editorProductCat || 'all';
-  if (search || cat !== 'all') {
-    var visibleIdx = [];
-    for (var v = 0; v < state.products.length; v++) {
-      var p = state.products[v];
-      var matchCat = cat === 'all' || p.category === cat;
-      var hay = ((p.name || '') + ' ' + (p.desc || '')).toLowerCase();
-      var matchSearch = !search || hay.indexOf(search) >= 0;
-      if (matchCat && matchSearch) visibleIdx.push(v);
-    }
-    var pos = visibleIdx.indexOf(index);
-    var targetPos = pos + dir;
-    if (pos < 0 || targetPos < 0 || targetPos >= visibleIdx.length) return;
-    var targetIndex = visibleIdx[targetPos];
-    var item = state.products.splice(index, 1)[0];
-    // adjust target if removal shifted it
-    if (index < targetIndex) targetIndex--;
-    state.products.splice(targetIndex + (dir > 0 ? 1 : 0), 0, item);
-  } else {
-    if (!moveInArray(state.products, index, dir)) return;
-  }
-
-  afterMenuChange();
-}
-
-function moveCategory(id, dir) {
-  var index = -1;
-  for (var i = 0; i < state.categories.length; i++) {
-    if (state.categories[i].id === id) { index = i; break; }
-  }
-  if (!moveInArray(state.categories, index, dir)) return;
-  afterMenuChange();
-}
 
 function fillCategorySelect() {
   var select = $('prod-category');
@@ -2052,13 +2005,7 @@ function renderEditorProducts() {
     var thumb = item.image
       ? '<div class="edit-row-thumb"><img src="' + escapeHtml(item.image) + '" alt=""></div>'
       : '<div class="edit-row-thumb">' + (item.emoji || '☕') + '</div>';
-    var upDis = j === 0 ? ' disabled' : '';
-    var downDis = j === visible.length - 1 ? ' disabled' : '';
     html += '<div class="edit-row">' +
-      '<div class="move-btns">' +
-        '<button type="button" class="move-btn" data-move="up" data-id="' + escapeHtml(item.id) + '"' + upDis + '>▲</button>' +
-        '<button type="button" class="move-btn" data-move="down" data-id="' + escapeHtml(item.id) + '"' + downDis + '>▼</button>' +
-      '</div>' +
       thumb +
       '<div class="edit-row-main">' +
         '<div class="edit-row-title">' + escapeHtml(item.name) + '</div>' +
@@ -2075,14 +2022,6 @@ function renderEditorProducts() {
     '</div>';
   }
   list.innerHTML = html;
-
-  var moveBtns = list.querySelectorAll('[data-move]');
-  for (var m = 0; m < moveBtns.length; m++) {
-    moveBtns[m].addEventListener('click', function () {
-      var dir = this.getAttribute('data-move') === 'up' ? -1 : 1;
-      moveProduct(this.getAttribute('data-id'), dir);
-    });
-  }
   var editBtns = list.querySelectorAll('[data-edit]');
   for (var e = 0; e < editBtns.length; e++) {
     editBtns[e].addEventListener('click', function () { editProduct(this.getAttribute('data-edit')); });
@@ -2107,13 +2046,7 @@ function renderEditorCategories() {
     for (var j = 0; j < state.products.length; j++) {
       if (state.products[j].category === c.id) count++;
     }
-    var upDis = i === 0 ? ' disabled' : '';
-    var downDis = i === state.categories.length - 1 ? ' disabled' : '';
     html += '<div class="edit-row">' +
-      '<div class="move-btns">' +
-        '<button type="button" class="move-btn" data-cmove="up" data-id="' + escapeHtml(c.id) + '"' + upDis + '>▲</button>' +
-        '<button type="button" class="move-btn" data-cmove="down" data-id="' + escapeHtml(c.id) + '"' + downDis + '>▼</button>' +
-      '</div>' +
       '<div class="edit-row-main">' +
         '<div class="edit-row-title">' + (c.emoji || '') + ' ' + escapeHtml(c.name) + '</div>' +
         '<div class="edit-row-sub">' + count + ' поз.</div>' +
@@ -2129,14 +2062,6 @@ function renderEditorCategories() {
     '</div>';
   }
   list.innerHTML = html;
-
-  var moveBtns = list.querySelectorAll('[data-cmove]');
-  for (var m = 0; m < moveBtns.length; m++) {
-    moveBtns[m].addEventListener('click', function () {
-      var dir = this.getAttribute('data-cmove') === 'up' ? -1 : 1;
-      moveCategory(this.getAttribute('data-id'), dir);
-    });
-  }
   var editBtns = list.querySelectorAll('[data-cedit]');
   for (var e = 0; e < editBtns.length; e++) {
     editBtns[e].addEventListener('click', function () { editCategory(this.getAttribute('data-cedit')); });
@@ -2301,6 +2226,7 @@ function deleteCategory(id) {
 }
 
 function afterMenuChange() {
+  sortMenu();
   cacheMenu();
   markDirty();
   renderCategories();
